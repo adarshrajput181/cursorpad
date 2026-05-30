@@ -19,15 +19,16 @@ class TrackpadOverlayService : Service() {
             setBackgroundColor(0xAAFF0000.toInt())
         }
 
-        val height = 200
+        val height = 300
+        val width = 300
         var params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
+            width,
             height,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            gravity = Gravity.BOTTOM or Gravity.RIGHT
             y = 0
         }
 
