@@ -1,14 +1,18 @@
 package com.example.cursorpad
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.os.IBinder
+import android.provider.Settings
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
+import android.view.accessibility.AccessibilityManager
 import kotlin.math.hypot
 
 class TrackpadOverlayService: Service() {
@@ -40,6 +44,8 @@ class TrackpadOverlayService: Service() {
         computeScreenAreas()
         createTouchpadOverlay()
         createCursorOverlay()
+
+        startService(Intent(this, CursorClickAccessibilityService::class.java))
     }
 
     private fun createTouchpadOverlay() {
@@ -77,6 +83,7 @@ class TrackpadOverlayService: Service() {
 
                         if (totalMovement < touchSlop) {
                             v.performClick()
+                            performCursorTap()
                         }
                         // TODO: perform click logic goes here
                         true
@@ -100,6 +107,38 @@ class TrackpadOverlayService: Service() {
         windowManager.addView(touchpadView, params)
     }
 
+    private fun performCursorTap() {
+        if (!isAccessibilityServiceEnabled()) {
+            openAccessibilitySettings()
+            return
+        }
+
+        if (!CursorClickAccessibilityService.isServiceEnabled()) {
+            startService(Intent(this, CursorClickAccessibilityService::class.java))
+            return
+        }
+
+        val absoluteX = cursorAreaRect.left + cursorX + cursorWidth / 2f
+        val absoluteY = cursorAreaRect.top + cursorY + cursorHeight / 2f
+        val success = CursorClickAccessibilityService.performClick(absoluteX, absoluteY)
+
+        if (!success) {
+            // TODO: Log a toast
+        }
+    }
+
+    // PERFORMANCE: Checking if service is enabled every time a click is registered
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        val am = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+        return enabledServices.any { it.resolveInfo?.serviceInfo?.packageName == packageName }
+    }
+
+    private fun openAccessibilitySettings() {
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+    }
     private fun computeScreenAreas() {
         val displayMetrics = resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels

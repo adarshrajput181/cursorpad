@@ -49,6 +49,7 @@ class MainActivity : ComponentActivity() {
                     Uri.parse("package:$packageName")
                 )
 
+                // WARN: Deprecated in favour of Activity Results API. Update it
                 startActivityForResult(intent, overlayPermissionRequestCode)
             }
         }
@@ -59,6 +60,7 @@ class MainActivity : ComponentActivity() {
         startService(intent)
     }
 
+    // WARN: Replace this with ActivityResultContracts
     override fun onActivityResult(
         requestCode: Int,
         resultCode: Int,
