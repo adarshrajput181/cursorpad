@@ -7,6 +7,7 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.os.IBinder
 import android.provider.Settings
+import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -158,13 +159,13 @@ class TrackpadOverlayService: Service() {
         }
 
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
+            touchpadRect.width(),
             touchpadRect.height(),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.BOTTOM
+            gravity = Gravity.BOTTOM or Gravity.RIGHT
         }
 
         windowManager.addView(touchpadView, params)
@@ -181,10 +182,12 @@ class TrackpadOverlayService: Service() {
             return
         }
 
-        val absoluteX = cursorAreaRect.left + cursorX + cursorWidth / 2f
-        val absoluteY = cursorAreaRect.top + cursorY + cursorHeight / 2f
-        val success = CursorClickAccessibilityService.performClick(absoluteX, absoluteY)
+        val location = IntArray(2);
+        cursorView.getLocationOnScreen(location);
+        val absoluteX = location[0] + cursorView.width / 2f
+        val absoluteY = location[1] + cursorView.height / 2f
 
+        val success = CursorClickAccessibilityService.performClick(absoluteX, absoluteY)
         if (!success) {
             // TODO: Log a toast
         }
@@ -209,7 +212,7 @@ class TrackpadOverlayService: Service() {
         val cursorAreaHeight = (screenHeight * 0.75f).toInt()
 
         cursorAreaRect = Rect(0, 0,screenWidth, cursorAreaHeight)
-        touchpadRect = Rect(0, cursorAreaHeight, screenWidth, screenHeight)
+        touchpadRect = Rect((screenWidth * 0.5f).toInt(), cursorAreaHeight, screenWidth, screenHeight)
     }
 
     private fun createCursorOverlay() {
@@ -293,6 +296,7 @@ class TrackpadOverlayService: Service() {
     override fun onDestroy() {
         if (::touchpadView.isInitialized) windowManager.removeView(touchpadView)
         if (::cursorView.isInitialized) windowManager.removeView(cursorView)
+        if (::listenerView.isInitialized) windowManager.removeView(listenerView)
 
         super.onDestroy()
     }
