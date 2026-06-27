@@ -13,12 +13,14 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
+import androidx.core.view.isVisible
 import kotlin.math.hypot
 
 class TrackpadOverlayService: Service() {
     private lateinit var windowManager: WindowManager
     private lateinit var touchpadView: View
     private lateinit var cursorView: View
+    private lateinit var listenerView: View
 
     private var cursorX = 0f
     private var cursorY = 0f
@@ -34,6 +36,9 @@ class TrackpadOverlayService: Service() {
     private var lastTouchX = 0f
     private var lastTouchY = 0f
 
+    private var listenerX = 0f
+    private var listenerY = 0f
+
     private var touchSlop = 0f
 
     override fun onCreate() {
@@ -44,8 +49,66 @@ class TrackpadOverlayService: Service() {
         computeScreenAreas()
         createTouchpadOverlay()
         createCursorOverlay()
+        createListenerOverlay()
 
         startService(Intent(this, CursorClickAccessibilityService::class.java))
+    }
+
+    // Overlay for listening for swipe gesture to toggle touchpad.
+    private fun createListenerOverlay() {
+        listenerView = View(this).apply {
+            setBackgroundColor(0x00FFFFFF.toInt())
+
+            setOnTouchListener { v, event ->
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        listenerX = event.rawX
+                        listenerY = event.rawY
+
+                        true
+                    }
+
+                    MotionEvent.ACTION_MOVE, MotionEvent.ACTION_CANCEL -> {
+                        true
+                    }
+
+                    MotionEvent.ACTION_UP -> {
+                        val upX = event.rawX
+                        val dx = Math.abs(listenerX - upX)
+                        if (dx > (60 * resources.displayMetrics.density) && listenerX > upX) {
+                            toggleTouchpadVisibility()
+                        }
+
+                        v.performClick()
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }
+
+        val width = (10 * resources.displayMetrics.density).toInt()
+        val screenHeight = resources.displayMetrics.heightPixels
+        val params = WindowManager.LayoutParams(
+            width,
+            (screenHeight * 0.2f).toInt(),
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.BOTTOM or Gravity.RIGHT
+        }
+
+        windowManager.addView(listenerView, params)
+    }
+
+    private fun toggleTouchpadVisibility() {
+        if (!::touchpadView.isInitialized) return
+        if (!::cursorView.isInitialized) return
+        val newVisibility = if (touchpadView.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        touchpadView.visibility = newVisibility
+        cursorView.visibility = newVisibility
     }
 
     private fun createTouchpadOverlay() {
@@ -143,7 +206,7 @@ class TrackpadOverlayService: Service() {
         val displayMetrics = resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
         val screenWidth = displayMetrics.widthPixels
-        val cursorAreaHeight = (screenHeight * 0.65f).toInt()
+        val cursorAreaHeight = (screenHeight * 0.75f).toInt()
 
         cursorAreaRect = Rect(0, 0,screenWidth, cursorAreaHeight)
         touchpadRect = Rect(0, cursorAreaHeight, screenWidth, screenHeight)
