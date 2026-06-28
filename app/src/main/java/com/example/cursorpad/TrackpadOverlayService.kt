@@ -3,8 +3,10 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.drawable.GradientDrawable
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
@@ -26,7 +28,7 @@ class TrackpadOverlayService: Service() {
     private var cursorX = 0f
     private var cursorY = 0f
     private var isTouching = false
-    private val sensitivity = 2f
+    private val sensitivity = 1.6f
 
     private lateinit var touchpadRect: Rect
     private lateinit var cursorAreaRect: Rect
@@ -93,7 +95,7 @@ class TrackpadOverlayService: Service() {
         val screenHeight = resources.displayMetrics.heightPixels
         val params = WindowManager.LayoutParams(
             width,
-            (screenHeight * 0.2f).toInt(),
+            (screenHeight * 0.3f).toInt(),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
@@ -113,8 +115,16 @@ class TrackpadOverlayService: Service() {
     }
 
     private fun createTouchpadOverlay() {
+        val cornerRadiusPx = 20f * resources.displayMetrics.density
+        val borderWidthPx = (2f * resources.displayMetrics.density).toInt()
+
         touchpadView = View(this).apply {
-            setBackgroundColor(0xAA333333.toInt())
+            val drawable = GradientDrawable().apply {
+                setColor(0xAA333333.toInt())
+                cornerRadius = cornerRadiusPx
+                setStroke(borderWidthPx, Color.WHITE)
+            }
+            background = drawable
 
             setOnTouchListener { v, event ->
                 when (event.actionMasked) {
@@ -209,14 +219,14 @@ class TrackpadOverlayService: Service() {
         val displayMetrics = resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
         val screenWidth = displayMetrics.widthPixels
-        val cursorAreaHeight = (screenHeight * 0.75f).toInt()
+        val cursorAreaHeight = (screenHeight * 0.70f).toInt()
 
         cursorAreaRect = Rect(0, 0,screenWidth, cursorAreaHeight)
-        touchpadRect = Rect((screenWidth * 0.5f).toInt(), cursorAreaHeight, screenWidth, screenHeight)
+        touchpadRect = Rect((screenWidth * 0.4f).toInt(), cursorAreaHeight, screenWidth, screenHeight)
     }
 
     private fun createCursorOverlay() {
-        val cursorSize = (20 * resources.displayMetrics.density).toInt()
+        val cursorSize = (30f * resources.displayMetrics.density).toInt()
         cursorView = View(this).apply {
             setBackgroundResource(R.drawable.cursor_circle)
         }
