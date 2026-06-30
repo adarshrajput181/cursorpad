@@ -16,7 +16,6 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
-import androidx.core.view.isVisible
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -120,6 +119,10 @@ class TrackpadOverlayService: Service() {
         val newVisibility = if (touchpadView.visibility == View.VISIBLE) View.GONE else View.VISIBLE
         touchpadView.visibility = newVisibility
         cursorView.visibility = newVisibility
+
+        cursorX = (cursorAreaRect.width() - cursorWidth) / 2f
+        cursorY = (cursorAreaRect.height() - cursorHeight) / 2f
+        updateCursorPosition()
     }
 
     private fun createTouchpadOverlay() {
@@ -148,12 +151,10 @@ class TrackpadOverlayService: Service() {
                         longPressJob?.cancel()
                         // start listening for long press
                         longPressJob = scope.launch {
-                            Log.d("LongPress", "Launched")
-                            delay(400)
+                            delay(200)
 
                             longPressTriggered = true
                             // only runs once the delay exceeds 400ms
-                            Log.d("LongPress", "Delay crossed")
                             performLongPress()
                         }
                         true

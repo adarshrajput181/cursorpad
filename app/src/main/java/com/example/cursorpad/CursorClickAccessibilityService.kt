@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.graphics.Path
 import android.util.Log
+import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityEvent
 
 class CursorClickAccessibilityService : AccessibilityService() {
@@ -49,15 +50,15 @@ class CursorClickAccessibilityService : AccessibilityService() {
             .addStroke(GestureDescription.StrokeDescription(path, 0, 1))
             .build()
 
-        Log.d("ShortPress", "Injected")
         return dispatchGesture(gesture, null, null)
     }
 
     private fun injectLongPress(x: Float, y: Float): Boolean {
         val path = Path().apply { moveTo(x, y) }
-        Log.d("LongPress", "Injected")
         val gesture = GestureDescription.Builder()
-            .addStroke(GestureDescription.StrokeDescription(path, 0, 400))
+            .addStroke(GestureDescription.StrokeDescription(path, 0,
+                ViewConfiguration.getLongPressTimeout().toLong() + 20
+            ))
             .build()
 
         return dispatchGesture(gesture, null, null)
