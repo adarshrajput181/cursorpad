@@ -17,6 +17,11 @@ import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
 import androidx.core.view.isVisible
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.hypot
 
 class TrackpadOverlayService: Service() {
@@ -43,6 +48,9 @@ class TrackpadOverlayService: Service() {
     private var listenerY = 0f
 
     private var touchSlop = 0f
+    private val scope = MainScope()
+    private var longPressJob: Job? = null
+    private var longPressTriggered = false
 
     override fun onCreate() {
         super.onCreate()
@@ -135,10 +143,27 @@ class TrackpadOverlayService: Service() {
 
                         totalMovement = 0f
                         v.performClick()
+
+                        longPressTriggered = false
+                        longPressJob?.cancel()
+                        // start listening for long press
+                        longPressJob = scope.launch {
+                            Log.d("LongPress", "Launched")
+                            delay(400)
+
+                            longPressTriggered = true
+                            // only runs once the delay exceeds 400ms
+                            Log.d("LongPress", "Delay crossed")
+                            performLongPress()
+                        }
                         true
                     }
 
                     MotionEvent.ACTION_MOVE -> {
+                        if (totalMovement > touchSlop) {
+                            longPressJob?.cancel()
+                        }
+
                         if (isTouching) {
                             val dx = event.rawX - lastTouchX
                             val dy = event.rawY - lastTouchY
@@ -149,17 +174,18 @@ class TrackpadOverlayService: Service() {
                             lastTouchY = event.rawY
 
                         }
+
                         true
                     }
 
                     MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        longPressJob?.cancel()
                         isTouching = false
 
-                        if (totalMovement < touchSlop) {
+                        if (totalMovement < touchSlop && !longPressTriggered) {
                             v.performClick()
                             performCursorTap()
                         }
-                        // TODO: perform click logic goes here
                         true
                     }
 
@@ -198,6 +224,28 @@ class TrackpadOverlayService: Service() {
         val absoluteY = location[1] + cursorView.height / 2f
 
         val success = CursorClickAccessibilityService.performClick(absoluteX, absoluteY)
+        if (!success) {
+            // TODO: Log a toast
+        }
+    }
+
+    private fun performLongPress() {
+        if (!isAccessibilityServiceEnabled()) {
+            openAccessibilitySettings()
+            return
+        }
+
+        if (!CursorClickAccessibilityService.isServiceEnabled()) {
+            startService(Intent(this, CursorClickAccessibilityService::class.java))
+            return
+        }
+
+        val location = IntArray(2);
+        cursorView.getLocationOnScreen(location);
+        val absoluteX = location[0] + cursorView.width / 2f
+        val absoluteY = location[1] + cursorView.height / 2f
+
+        val success = CursorClickAccessibilityService.performLongPress(absoluteX, absoluteY)
         if (!success) {
             // TODO: Log a toast
         }

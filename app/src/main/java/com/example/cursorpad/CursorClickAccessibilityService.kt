@@ -18,6 +18,10 @@ class CursorClickAccessibilityService : AccessibilityService() {
             return instance?.injectClick(x, y) ?: false
         }
 
+        fun performLongPress(x: Float, y: Float) : Boolean {
+            return instance?.injectLongPress(x, y) ?: false
+        }
+
         fun isServiceEnabled() : Boolean = instance != null
     }
 
@@ -43,6 +47,17 @@ class CursorClickAccessibilityService : AccessibilityService() {
         val path = Path().apply { moveTo(x, y) }
         val gesture = GestureDescription.Builder()
             .addStroke(GestureDescription.StrokeDescription(path, 0, 1))
+            .build()
+
+        Log.d("ShortPress", "Injected")
+        return dispatchGesture(gesture, null, null)
+    }
+
+    private fun injectLongPress(x: Float, y: Float): Boolean {
+        val path = Path().apply { moveTo(x, y) }
+        Log.d("LongPress", "Injected")
+        val gesture = GestureDescription.Builder()
+            .addStroke(GestureDescription.StrokeDescription(path, 0, 400))
             .build()
 
         return dispatchGesture(gesture, null, null)
