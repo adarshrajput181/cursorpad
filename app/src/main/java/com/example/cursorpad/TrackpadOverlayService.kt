@@ -9,7 +9,6 @@ import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
 import android.os.IBinder
 import android.provider.Settings
-import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -50,6 +49,7 @@ class TrackpadOverlayService: Service() {
     private val scope = MainScope()
     private var longPressJob: Job? = null
     private var longPressTriggered = false
+    private val originalCursorColor = Color.GREEN
 
     override fun onCreate() {
         super.onCreate()
@@ -152,9 +152,10 @@ class TrackpadOverlayService: Service() {
                         // start listening for long press
                         longPressJob = scope.launch {
                             delay(200)
-
+                            animateTouchDown()
+                            (cursorView.background as? GradientDrawable)?.setColor(Color.BLUE)
                             longPressTriggered = true
-                            // only runs once the delay exceeds 400ms
+                            // runs when the delay exceeds 400ms
                             performLongPress()
                         }
                         true
@@ -183,10 +184,19 @@ class TrackpadOverlayService: Service() {
                         longPressJob?.cancel()
                         isTouching = false
 
+                        v.performClick()
                         if (totalMovement < touchSlop && !longPressTriggered) {
-                            v.performClick()
+                            // initiate the animation
+                            animateTouchDown()
                             performCursorTap()
+                        } else if (longPressTriggered) {
+                            // reset color and size
+                            (cursorView.background as? GradientDrawable)?.setColor(
+                                originalCursorColor
+                            )
                         }
+
+                        longPressTriggered = false
                         true
                     }
 
@@ -208,6 +218,21 @@ class TrackpadOverlayService: Service() {
         windowManager.addView(touchpadView, params)
     }
 
+    private fun animateTouchDown() {
+        cursorView.animate()
+            .scaleX(0.8f)
+            .scaleY(0.8f)
+            .setDuration(100)
+            .withEndAction {
+                cursorView.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(100)
+                    .start()
+            }
+            .start()
+    }
+
     private fun performCursorTap() {
         if (!isAccessibilityServiceEnabled()) {
             openAccessibilitySettings()
@@ -223,7 +248,6 @@ class TrackpadOverlayService: Service() {
         cursorView.getLocationOnScreen(location);
         val absoluteX = location[0] + cursorView.width / 2f
         val absoluteY = location[1] + cursorView.height / 2f
-
         val success = CursorClickAccessibilityService.performClick(absoluteX, absoluteY)
         if (!success) {
             // TODO: Log a toast
@@ -264,6 +288,7 @@ class TrackpadOverlayService: Service() {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
     }
+
     private fun computeScreenAreas() {
         val displayMetrics = resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels

@@ -57,7 +57,7 @@ class CursorClickAccessibilityService : AccessibilityService() {
         val path = Path().apply { moveTo(x, y) }
         val gesture = GestureDescription.Builder()
             .addStroke(GestureDescription.StrokeDescription(path, 0,
-                ViewConfiguration.getLongPressTimeout().toLong() + 20
+                ViewConfiguration.getLongPressTimeout().toLong() + 50
             ))
             .build()
 
