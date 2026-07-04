@@ -1,5 +1,8 @@
 package com.example.cursorpad
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -9,6 +12,7 @@ import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
 import android.os.IBinder
 import android.provider.Settings
+import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -17,7 +21,6 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
@@ -67,7 +70,7 @@ class TrackpadOverlayService: Service() {
     // Overlay for listening for swipe gesture to toggle touchpad.
     private fun createListenerOverlay() {
         listenerView = View(this).apply {
-            setBackgroundColor(0x00FFFFFF.toInt())
+            setBackgroundColor(0x00FFFFFF)
 
             setOnTouchListener { v, event ->
                 when (event.actionMasked) {
@@ -107,7 +110,7 @@ class TrackpadOverlayService: Service() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.BOTTOM or Gravity.RIGHT
+            gravity = Gravity.BOTTOM or Gravity.END
         }
 
         windowManager.addView(listenerView, params)
@@ -152,10 +155,9 @@ class TrackpadOverlayService: Service() {
                         // start listening for long press
                         longPressJob = scope.launch {
                             delay(200)
-                            animateTouchDown()
-                            (cursorView.background as? GradientDrawable)?.setColor(Color.BLUE)
+                            // runs when the delay exceeds 200ms
+                            animateLongPress()
                             longPressTriggered = true
-                            // runs when the delay exceeds 400ms
                             performLongPress()
                         }
                         true
@@ -189,11 +191,6 @@ class TrackpadOverlayService: Service() {
                             // initiate the animation
                             animateTouchDown()
                             performCursorTap()
-                        } else if (longPressTriggered) {
-                            // reset color and size
-                            (cursorView.background as? GradientDrawable)?.setColor(
-                                originalCursorColor
-                            )
                         }
 
                         longPressTriggered = false
@@ -212,7 +209,7 @@ class TrackpadOverlayService: Service() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.BOTTOM or Gravity.RIGHT
+            gravity = Gravity.BOTTOM or Gravity.END
         }
 
         windowManager.addView(touchpadView, params)
@@ -233,6 +230,43 @@ class TrackpadOverlayService: Service() {
             .start()
     }
 
+    private fun animateLongPress() {
+        val scaleDownX = ObjectAnimator.ofFloat(cursorView, "scaleX", 1f, 0.8f)
+        val scaleDownY = ObjectAnimator.ofFloat(cursorView, "scaleY", 1f, 0.8f)
+        val scaleUpX = ObjectAnimator.ofFloat(cursorView, "scaleX", 0.8f, 1f)
+        val scaleUpY = ObjectAnimator.ofFloat(cursorView, "scaleY", 0.8f, 1f)
+        val circleDrawable = cursorView.background as? GradientDrawable
+
+        if (circleDrawable != null) {
+            val colorChange = ValueAnimator.ofArgb(originalCursorColor, Color.BLUE).apply {
+                addUpdateListener { animator ->
+                    circleDrawable.setColor(animator.animatedValue as Int)
+                }
+            }
+
+            val colorRevert = ValueAnimator.ofArgb(Color.BLUE, originalCursorColor).apply {
+                addUpdateListener { animator ->
+                    circleDrawable.setColor(animator.animatedValue as Int)
+                }
+            }
+
+            val firstHalf = AnimatorSet().apply {
+                playTogether(scaleDownX, scaleDownY, colorChange)
+                duration = 150L
+            }
+
+            val secondHalf = AnimatorSet().apply {
+                playTogether(scaleUpX, scaleUpY, colorRevert)
+                duration = 150L
+            }
+
+            AnimatorSet().apply {
+                playSequentially(firstHalf, secondHalf)
+                start()
+            }
+        }
+    }
+
     private fun performCursorTap() {
         if (!isAccessibilityServiceEnabled()) {
             openAccessibilitySettings()
@@ -244,8 +278,8 @@ class TrackpadOverlayService: Service() {
             return
         }
 
-        val location = IntArray(2);
-        cursorView.getLocationOnScreen(location);
+        val location = IntArray(2)
+        cursorView.getLocationOnScreen(location)
         val absoluteX = location[0] + cursorView.width / 2f
         val absoluteY = location[1] + cursorView.height / 2f
         val success = CursorClickAccessibilityService.performClick(absoluteX, absoluteY)
@@ -265,8 +299,8 @@ class TrackpadOverlayService: Service() {
             return
         }
 
-        val location = IntArray(2);
-        cursorView.getLocationOnScreen(location);
+        val location = IntArray(2)
+        cursorView.getLocationOnScreen(location)
         val absoluteX = location[0] + cursorView.width / 2f
         val absoluteY = location[1] + cursorView.height / 2f
 
@@ -278,7 +312,7 @@ class TrackpadOverlayService: Service() {
 
     // PERFORMANCE: Checking if service is enabled every time a click is registered
     private fun isAccessibilityServiceEnabled(): Boolean {
-        val am = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val am = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
         val enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
         return enabledServices.any { it.resolveInfo?.serviceInfo?.packageName == packageName }
     }
