@@ -6,18 +6,27 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.example.cursorpad.ui.theme.CursorPadTheme
 
 class MainActivity : ComponentActivity() {
@@ -28,7 +37,16 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CursorPadTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    floatingActionButton = {
+                        ServiceToggleButton(
+                            modifier = Modifier,
+                            onStart = { startOverlayWithPermissionCheck() },
+                            onStop = { stopOverlayService() }
+                        )
+                    }
+                ) { innerPadding ->
                     LaunchOverlayButton(
                         modifier = Modifier.padding(innerPadding),
                         onStartOverlay = { startOverlayWithPermissionCheck() }
@@ -58,6 +76,11 @@ class MainActivity : ComponentActivity() {
     private fun startOverlayService() {
         val intent = Intent(this, TrackpadOverlayService::class.java)
         startService(intent)
+    }
+
+    private fun stopOverlayService() {
+        val intent = Intent(this, TrackpadOverlayService::class.java)
+        stopService(intent)
     }
 
     // WARN: Replace this with ActivityResultContracts
@@ -95,3 +118,28 @@ fun LaunchOverlayButton(
         }
     }
 }
+
+@Composable
+fun ServiceToggleButton(
+    modifier: Modifier = Modifier,
+    onStart: () -> Unit,
+    onStop: () -> Unit
+) {
+    val isServiceRunning by TrackpadOverlayService.isRunning.collectAsState(initial = false)
+
+    FloatingActionButton(
+        modifier = modifier.padding(16.dp),
+        onClick = {
+            if (isServiceRunning)
+                onStop()
+            else
+                onStart()
+        }
+    ) {
+        Icon(
+            imageVector = if (isServiceRunning) Icons.Default.Close else Icons.Default.PlayArrow,
+            contentDescription = if (isServiceRunning) "Close" else "Play"
+        )
+    }
+}
+

@@ -22,6 +22,9 @@ import android.view.accessibility.AccessibilityManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
 
@@ -54,8 +57,14 @@ class TrackpadOverlayService: Service() {
     private var longPressTriggered = false
     private val originalCursorColor = Color.GREEN
 
+    companion object {
+        private var _isRunning = MutableStateFlow(false)
+        val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
+    }
+
     override fun onCreate() {
         super.onCreate()
+        _isRunning.value = true
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         touchSlop = ViewConfiguration.get(this).scaledTouchSlop.toFloat()
 
@@ -416,6 +425,7 @@ class TrackpadOverlayService: Service() {
         if (::cursorView.isInitialized) windowManager.removeView(cursorView)
         if (::listenerView.isInitialized) windowManager.removeView(listenerView)
 
+        _isRunning.value = false
         super.onDestroy()
     }
 
