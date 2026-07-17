@@ -9,8 +9,10 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,6 +49,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -56,7 +59,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,11 +67,11 @@ import com.example.cursorpad.ui.theme.Green34
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
-    private val overlayPermissionRequestCode = 1001
-
     enum class PermissionType { OVERLAY, ACCESSIBILITY }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,20 +85,42 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(isAccessibilityServiceEnabled())
                 }
 
-                // WARN: Better to use repeatOnLifecycle
-                val lifecycleOwner = LocalLifecycleOwner.current
-                DisposableEffect(lifecycleOwner) {
-                    val observer = LifecycleEventObserver { _, event ->
-                        if (event == Lifecycle.Event.ON_RESUME) {
-                            isOverlayEnabled = Settings.canDrawOverlays(context)
-                            isAccessibilityEnabled = isAccessibilityServiceEnabled()
-                        }
+                val overlayLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.StartActivityForResult()
+                ) { _ ->
+                    isOverlayEnabled = Settings.canDrawOverlays(context)
+
+                    if (isOverlayEnabled) {
+                        context.startService(Intent(context, TrackpadOverlayService::class.java))
                     }
+                }
 
-                    lifecycleOwner.lifecycle.addObserver(observer)
+                val accessibilityLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.StartActivityForResult()
+                ) { _ ->
+                    isAccessibilityEnabled = isAccessibilityServiceEnabled()
+                }
 
-                    onDispose {
-                        lifecycleOwner.lifecycle.removeObserver(observer)
+                // Update permission status everytime the app comes into foreground
+                val lifecycleOwner = LocalLifecycleOwner.current
+                LaunchedEffect(Unit) {
+                    lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                        isOverlayEnabled = Settings.canDrawOverlays(context)
+                        isAccessibilityEnabled = isAccessibilityServiceEnabled()
+                    }
+                }
+
+                fun checkAndStartOverlay () {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (Settings.canDrawOverlays(context)) {
+                            context.startService(Intent(context, TrackpadOverlayService::class.java))
+                        } else {
+                            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+                                data = Uri.parse("package:${context.packageName}")
+                            }
+
+                            overlayLauncher.launch(intent)
+                        }
                     }
                 }
 
@@ -117,7 +141,7 @@ class MainActivity : ComponentActivity() {
                             floatingActionButton = {
                                 ServiceToggleButton(
                                     modifier = Modifier,
-                                    onStart = { startOverlayWithPermissionCheck() },
+                                    onStart = { checkAndStartOverlay() },
                                     onStop = { stopOverlayService() }
                                 )
                             },
@@ -215,7 +239,7 @@ class MainActivity : ComponentActivity() {
                                                 data = "package:${context.packageName}".toUri()
                                             }
 
-                                        context.startActivity(intent)
+                                        overlayLauncher.launch(intent)
                                     }) {
                                         Text("Proceed")
                                     }
@@ -241,7 +265,7 @@ class MainActivity : ComponentActivity() {
                                         showPermissionDialog = null
 
                                         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                                        context.startActivity(intent)
+                                        accessibilityLauncher.launch(intent)
                                     }) {
                                         Text("Proceed")
                                     }
@@ -260,24 +284,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    private fun startOverlayWithPermissionCheck() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (Settings.canDrawOverlays(this)) {
-                startOverlayService()
-            } else {
-                // Request overlay permission
-                val intent = Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    "package:$packageName".toUri()
-                )
-
-                // WARN: Deprecated in favour of Activity Results API. Update it
-                startActivityForResult(intent, overlayPermissionRequestCode)
-            }
-        }
-    }
-
     private fun startOverlayService() {
         val intent = Intent(this, TrackpadOverlayService::class.java)
         startService(intent)
@@ -293,24 +299,6 @@ class MainActivity : ComponentActivity() {
         val am = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
         val enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
         return enabledServices.any { it.resolveInfo?.serviceInfo?.packageName == packageName }
-    }
-
-    // WARN: Replace this with ActivityResultContracts
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?,
-        caller: ComponentCaller
-    ) {
-        super.onActivityResult(requestCode, resultCode, data, caller)
-
-        if (requestCode == overlayPermissionRequestCode) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (Settings.canDrawOverlays(this)) {
-                    startOverlayService()
-                }
-            }
-        }
     }
 }
 
