@@ -3,7 +3,6 @@ package com.example.cursorpad
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
@@ -45,16 +44,14 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.cursorpad.PermissionCard
-import com.example.cursorpad.ServiceToggleButton
-import com.example.cursorpad.TrackpadOverlayService
 
 enum class PermissionType { OVERLAY, ACCESSIBILITY }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    stopOverlayService: () -> Unit
+    stopOverlayService: () -> Unit,
+    onNavigateToSettings: () -> Unit
 ) {
     val context = LocalContext.current
     var isOverlayEnabled by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
@@ -93,7 +90,7 @@ fun HomeScreen(
                 context.startService(Intent(context, TrackpadOverlayService::class.java))
             } else {
                 val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
-                    data = Uri.parse("package:${context.packageName}")
+                    data = "package:${context.packageName}".toUri()
                 }
 
                 overlayLauncher.launch(intent)
@@ -124,7 +121,9 @@ fun HomeScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = {}
+                        onClick = {
+                            onNavigateToSettings()
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
@@ -236,8 +235,6 @@ fun HomeScreen(
                     text = { Text("Accessibility service permission is needed for simulating taps.\n\n" +
                             "On the next screen, go to Downloaded Apps, then choose CursorPad and enable 'Use CursorPad'.") },
                     confirmButton = {
-                        val context = LocalContext.current
-
                         TextButton(onClick = {
                             showPermissionDialog = null
 

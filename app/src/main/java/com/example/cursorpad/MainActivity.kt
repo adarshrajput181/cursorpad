@@ -32,6 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.cursorpad.ui.theme.CursorPadTheme
 import com.example.cursorpad.ui.theme.Green34
 
@@ -41,9 +44,30 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CursorPadTheme {
-                HomeScreen(
-                    stopOverlayService = { stopOverlayService() }
-                )
+                val navController = rememberNavController()
+
+                NavHost(
+                    navController = navController,
+                    startDestination = "home"
+                ) {
+                    composable("home") {
+                        HomeScreen(
+                            stopOverlayService = { stopOverlayService() },
+                            onNavigateToSettings = {
+                                navController.navigate("settings")
+                            }
+                        )
+                    }
+
+                    composable ("settings") {
+                        SettingsScreen(
+                            onBackPressed = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+
+                }
             }
         }
     }
