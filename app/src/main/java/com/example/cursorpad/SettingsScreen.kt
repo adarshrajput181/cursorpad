@@ -21,15 +21,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.preferencesOf
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
@@ -37,6 +45,20 @@ import androidx.compose.ui.unit.sp
 fun SettingsScreen(
     onBackPressed: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val dataStore = context.dataStore
+    val scope = rememberCoroutineScope()
+
+    val settings by dataStore.data.collectAsState(initial = preferencesOf())
+    var cursorSize by remember { mutableStateOf(settings[CURSOR_SIZE_KEY] ?: 30f)}
+    var borderSize by remember { mutableStateOf(settings[BORDER_SIZE_KEY] ?: 2f)}
+
+    // Update state if the settings change
+    LaunchedEffect(settings) {
+        cursorSize = settings[CURSOR_SIZE_KEY] ?: 30f
+        borderSize = settings[BORDER_SIZE_KEY] ?: 2f
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -63,8 +85,6 @@ fun SettingsScreen(
                 .padding(innerPadding)
                 .padding(24.dp)
         ) {
-            var cursorSize by rememberSaveable { mutableStateOf(30f) }
-            var borderSize by rememberSaveable { mutableStateOf(2f) }
             Text(
                 "Cursor Settings",
                 fontSize = 14.sp,
@@ -82,6 +102,13 @@ fun SettingsScreen(
                 Slider(
                     value = cursorSize,
                     onValueChange = { cursorSize = it },
+                    onValueChangeFinished = {
+                        scope.launch {
+                            dataStore.edit { preferences ->
+                                preferences[CURSOR_SIZE_KEY] = cursorSize
+                            }
+                        }
+                    },
                     valueRange = 20f..50f,
                     steps = 30
                 )
@@ -92,6 +119,13 @@ fun SettingsScreen(
                 Slider(
                     value = borderSize,
                     onValueChange = { borderSize = it },
+                    onValueChangeFinished = {
+                        scope.launch {
+                            dataStore.edit { preferences ->
+                                preferences[BORDER_SIZE_KEY] = borderSize
+                            }
+                        }
+                    },
                     valueRange = 0f..5f,
                     steps = 4
                 )
