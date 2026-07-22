@@ -19,6 +19,10 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
+import android.widget.ImageView
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
@@ -348,10 +352,18 @@ class TrackpadOverlayService: Service() {
         val preferences = runBlocking { applicationContext.dataStore.data.first() }
 
         val cursorSize = preferences[CURSOR_SIZE_KEY] ?: 30f
-        val cursorSizeDP = (cursorSize * resources.displayMetrics.density).toInt()
+        val borderSize = preferences[BORDER_SIZE_KEY] ?: 2f
+        val density = resources.displayMetrics.density
+
+        val cursorSizeDP = (cursorSize * density).toInt()
+        val borderSizeDP = (borderSize * density).toInt()
+
         cursorView = View(this).apply {
             setBackgroundResource(R.drawable.cursor_circle)
         }
+
+        val drawable = (cursorView.background as GradientDrawable).mutate() as GradientDrawable
+        drawable.setStroke(borderSizeDP, Color.WHITE)
 
         val params = WindowManager.LayoutParams (
             cursorSizeDP,

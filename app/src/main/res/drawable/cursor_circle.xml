@@ -2,5 +2,4 @@
     android:shape="oval">
     <stroke android:color="#FFFFFF" android:width="4dp"/>
     <solid android:color="#00FF00" />
-    <size android:width="2dp" android:height="2dp" />
 </shape>
