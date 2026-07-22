@@ -25,7 +25,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.math.hypot
 
 class TrackpadOverlayService: Service() {
@@ -343,14 +345,17 @@ class TrackpadOverlayService: Service() {
     }
 
     private fun createCursorOverlay() {
-        val cursorSize = (30f * resources.displayMetrics.density).toInt()
+        val preferences = runBlocking { applicationContext.dataStore.data.first() }
+
+        val cursorSize = preferences[CURSOR_SIZE_KEY] ?: 30f
+        val cursorSizeDP = (cursorSize * resources.displayMetrics.density).toInt()
         cursorView = View(this).apply {
             setBackgroundResource(R.drawable.cursor_circle)
         }
 
         val params = WindowManager.LayoutParams (
-            cursorSize,
-            cursorSize,
+            cursorSizeDP,
+            cursorSizeDP,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
             PixelFormat.TRANSLUCENT
