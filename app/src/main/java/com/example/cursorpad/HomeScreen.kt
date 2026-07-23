@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,15 +36,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 enum class PermissionType { OVERLAY, ACCESSIBILITY }
 
@@ -81,6 +87,17 @@ fun HomeScreen(
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             isOverlayEnabled = Settings.canDrawOverlays(context)
             isAccessibilityEnabled = isAccessibilityServiceEnabled(context)
+        }
+    }
+
+    // Set default color to dynamic primary color if no default color set
+    val defaultColorInt = MaterialTheme.colorScheme.primary.toArgb()
+    LaunchedEffect(Unit) {
+        val dataStore = context.dataStore
+        val preferences = dataStore.data.first()
+        val useDynamicColor = preferences[DYNAMIC_COLOR_KEY] ?: true
+        if (!preferences.contains(CURSOR_COLOR_KEY) || useDynamicColor) {
+            dataStore.edit { it[CURSOR_COLOR_KEY] = defaultColorInt }
         }
     }
 
