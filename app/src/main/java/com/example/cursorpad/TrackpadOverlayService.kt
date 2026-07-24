@@ -357,15 +357,12 @@ class TrackpadOverlayService: Service() {
         val density = resources.displayMetrics.density
 
         val cursorSizeDP = (cursorSize * density).toInt()
-        val borderSizeDP = (borderSize * density).toInt()
+        val borderSizeDP = borderSize * density
 
-        cursorView = View(this).apply {
-            setBackgroundResource(R.drawable.cursor_circle)
+        cursorView = CursorView(this).apply {
+            this.borderSize = borderSizeDP
+            this.cursorColor = cursorColor
         }
-
-        val drawable = (cursorView.background as GradientDrawable).mutate() as GradientDrawable
-        drawable.setStroke(borderSizeDP, Color.WHITE)
-        drawable.setColor(cursorColor)
 
         val params = WindowManager.LayoutParams (
             cursorSizeDP,
