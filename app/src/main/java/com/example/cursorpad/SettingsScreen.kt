@@ -2,7 +2,9 @@ package com.example.cursorpad
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -138,6 +140,14 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
+                CursorPreviewArea(
+                    cursorColor = if (useDynamicColor) MaterialTheme.colorScheme.primary else Color(savedColorInt),
+                    cursorSize = cursorSize,
+                    borderSize = borderSize
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
                 Column(
                     modifier = Modifier
                         .padding(vertical = 5.dp)
@@ -237,5 +247,35 @@ fun SettingsScreen(
             }
         }
 
+    }
+}
+
+@Composable
+fun CursorPreviewArea(
+    cursorColor: Color,
+    cursorSize: Float,
+    borderSize: Float,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant), RoundedCornerShape(12.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(cursorSize.dp)
+                .clip(CircleShape)
+                .background(cursorColor)
+                .border(
+                    BorderStroke(borderSize.dp, Color.White),
+                    CircleShape
+                )
+        )
     }
 }
