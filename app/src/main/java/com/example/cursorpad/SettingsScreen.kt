@@ -84,17 +84,18 @@ fun SettingsScreen(
     var cursorSize by remember { mutableStateOf(settings[CURSOR_SIZE_KEY] ?: 30f) }
     var borderSize by remember { mutableStateOf(settings[BORDER_SIZE_KEY] ?: 2f) }
     val useDynamicColor = settings[DYNAMIC_COLOR_KEY] ?: true
-    val savedColorInt = settings[CURSOR_COLOR_KEY] ?: Color.White.toArgb()
+    val savedColorInt = settings[CURSOR_COLOR_KEY] ?: Color.Red.toArgb()
     val currentDynamicColorInt = MaterialTheme.colorScheme.primary.toArgb()
 
     var colorDropdownExpanded by remember { mutableStateOf(false) }
-    var selectedColorText by remember {
-        mutableStateOf(
-            if (useDynamicColor) "Dynamic" else colorOptions.find {
-                it.second?.value?.toInt() == savedColorInt
-            }?.first ?: "White"
-        )
+    var selectedColorText = if (useDynamicColor) {
+        "Dynamic"
+    } else {
+        colorOptions.find { (_, color) ->
+            color?.toArgb() == savedColorInt
+        }?.first ?: "White"
     }
+
 
     // Update state if the settings change
     LaunchedEffect(settings) {
@@ -181,7 +182,7 @@ fun SettingsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { colorDropdownExpanded = !colorDropdownExpanded}
+                    .clickable { colorDropdownExpanded = !colorDropdownExpanded }
                     .padding(vertical = 10.dp, horizontal = 24.dp)
             ) {
                 Text("Cursor Color", fontSize = 16.sp)
@@ -196,7 +197,7 @@ fun SettingsScreen(
                 )
             }
 
-            DropdownMenu (
+            DropdownMenu(
                 expanded = colorDropdownExpanded,
                 onDismissRequest = { colorDropdownExpanded = false },
                 modifier = Modifier
@@ -204,8 +205,7 @@ fun SettingsScreen(
                     .background(
                         MaterialTheme.colorScheme.surfaceContainerLow,
                         RoundedCornerShape(4.dp)
-                    )
-                ,
+                    ),
                 offset = DpOffset(x = 24.dp, y = (-68).dp)
             ) {
                 colorOptions.forEach { (name, color) ->
