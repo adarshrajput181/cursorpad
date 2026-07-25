@@ -35,6 +35,12 @@ class CursorView(context: Context): View(context) {
             invalidate()
         }
 
+    var showDot: Boolean = true
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     override fun onDraw(canvas: Canvas) {
         val centerX = width / 2f
         val centerY = height / 2f
@@ -48,7 +54,9 @@ class CursorView(context: Context): View(context) {
         canvas.drawCircle(centerX, centerY, strokeRadius, strokePaint)
 
         // Draw the inner dot
-        val dotRadius = 3f
-        canvas.drawCircle(centerX, centerY, dotRadius, dotPaint)
+        if (showDot) {
+            val dotRadius = 3f
+            canvas.drawCircle(centerX, centerY, dotRadius, dotPaint)
+        }
     }
 }

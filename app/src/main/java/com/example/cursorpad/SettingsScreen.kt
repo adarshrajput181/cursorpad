@@ -4,8 +4,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -84,6 +87,7 @@ fun SettingsScreen(
         }?.first ?: "White"
     }
 
+    var showDot = settings[SHOW_DOT_KEY] ?: true
 
     // Update state if the settings change
     LaunchedEffect(settings) {
@@ -127,9 +131,12 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 CursorPreviewArea(
-                    cursorColor = if (useDynamicColor) MaterialTheme.colorScheme.primary else Color(savedColorInt),
+                    cursorColor = if (useDynamicColor) MaterialTheme.colorScheme.primary else Color(
+                        savedColorInt
+                    ),
                     cursorSize = cursorSize,
-                    borderSize = borderSize
+                    borderSize = borderSize,
+                    showDot = showDot
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -191,45 +198,68 @@ fun SettingsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                 )
-            }
 
-            DropdownMenu(
-                expanded = colorDropdownExpanded,
-                onDismissRequest = { colorDropdownExpanded = false },
-                modifier = Modifier
-                    .width(150.dp)
-                    .background(
-                        MaterialTheme.colorScheme.surfaceContainerLow,
-                        RoundedCornerShape(4.dp)
-                    ),
-                offset = DpOffset(x = 24.dp, y = (-68).dp)
-            ) {
-                colorOptions.forEach { (name, color) ->
-                    DropdownMenuItem(
-                        modifier = Modifier.padding(start = 10.dp),
-                        text = {
-                            Text(name, fontSize = 15.sp)
-                        },
-                        onClick = {
-                            selectedColorText = name
-                            colorDropdownExpanded = false
 
-                            scope.launch {
-                                dataStore.edit { preferences ->
-                                    if (name == "Dynamic") {
-                                        preferences[DYNAMIC_COLOR_KEY] = true
-                                        preferences[CURSOR_COLOR_KEY] =
-                                            currentDynamicColorInt
-                                    } else {
-                                        preferences[DYNAMIC_COLOR_KEY] = false
-                                        preferences[CURSOR_COLOR_KEY] =
-                                            color?.toArgb() ?: Color.White.toArgb()
+                DropdownMenu(
+                    expanded = colorDropdownExpanded,
+                    onDismissRequest = { colorDropdownExpanded = false },
+                    modifier = Modifier
+                        .width(150.dp)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceContainerLow,
+                            RoundedCornerShape(4.dp)
+                        ),
+                    offset = DpOffset(x = 0.dp, y = (-58).dp)
+                ) {
+                    colorOptions.forEach { (name, color) ->
+                        DropdownMenuItem(
+                            modifier = Modifier.padding(start = 10.dp),
+                            text = {
+                                Text(name, fontSize = 15.sp)
+                            },
+                            onClick = {
+                                selectedColorText = name
+                                colorDropdownExpanded = false
+
+                                scope.launch {
+                                    dataStore.edit { preferences ->
+                                        if (name == "Dynamic") {
+                                            preferences[DYNAMIC_COLOR_KEY] = true
+                                            preferences[CURSOR_COLOR_KEY] =
+                                                currentDynamicColorInt
+                                        } else {
+                                            preferences[DYNAMIC_COLOR_KEY] = false
+                                            preferences[CURSOR_COLOR_KEY] =
+                                                color?.toArgb() ?: Color.White.toArgb()
+                                        }
                                     }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = "Show Center Dot", fontSize = 16.sp)
+                Switch(
+                    checked = showDot,
+                    onCheckedChange = { newValue ->
+                        scope.launch {
+                            dataStore.edit { preferences ->
+                                showDot = newValue
+                                preferences[SHOW_DOT_KEY] = newValue
+                            }
+                        }
+                    }
+                )
             }
         }
 
@@ -241,6 +271,7 @@ fun CursorPreviewArea(
     cursorColor: Color,
     cursorSize: Float,
     borderSize: Float,
+    showDot: Boolean
 ) {
     Box(
         modifier = Modifier
@@ -250,7 +281,10 @@ fun CursorPreviewArea(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(12.dp)
             )
-            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant), RoundedCornerShape(12.dp)),
+            .border(
+                BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant),
+                RoundedCornerShape(12.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -261,7 +295,17 @@ fun CursorPreviewArea(
                 .border(
                     BorderStroke(borderSize.dp, Color.White),
                     CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (showDot) {
+                Box(
+                    modifier = Modifier
+                        .size(3.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
                 )
-        )
+            }
+        }
     }
 }

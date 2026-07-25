@@ -354,6 +354,7 @@ class TrackpadOverlayService: Service() {
         val cursorSize = preferences[CURSOR_SIZE_KEY] ?: 30f
         val borderSize = preferences[BORDER_SIZE_KEY] ?: 2f
         val cursorColor = preferences[CURSOR_COLOR_KEY] ?: Color.GREEN
+        val showDot = preferences[SHOW_DOT_KEY] ?: true
         val density = resources.displayMetrics.density
 
         val cursorSizeDP = (cursorSize * density).toInt()
@@ -362,6 +363,7 @@ class TrackpadOverlayService: Service() {
         cursorView = CursorView(this).apply {
             this.borderSize = borderSizeDP
             this.cursorColor = cursorColor
+            this.showDot = showDot
         }
 
         val params = WindowManager.LayoutParams (
