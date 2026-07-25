@@ -141,45 +141,37 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                Column(
-                    modifier = Modifier
-                        .padding(vertical = 5.dp)
-                ) {
-                    Text("Cursor Size: ${cursorSize.toInt()}", fontSize = 16.sp)
-                    Spacer(
-                        modifier = Modifier.width(16.dp)
-                    )
-                    Slider(
-                        value = cursorSize,
-                        onValueChange = { cursorSize = it },
-                        onValueChangeFinished = {
-                            scope.launch {
-                                dataStore.edit { preferences ->
-                                    preferences[CURSOR_SIZE_KEY] = cursorSize
-                                }
+                LabelledSlider(
+                    property = cursorSize,
+                    label = "Cursor Size",
+                    onChange = { cursorSize = it },
+                    onChangeFinished = {
+                        scope.launch {
+                            dataStore.edit { preferences ->
+                                preferences[CURSOR_SIZE_KEY] = cursorSize
                             }
-                        },
-                        valueRange = 20f..50f,
-                        steps = 30
-                    )
-                }
+                        }
+                    },
+                    startRange = 10f,
+                    endRange = 50f,
+                    steps = 29
+                )
 
-                Column(modifier = Modifier.padding(vertical = 5.dp)) {
-                    Text("Border Size: ${borderSize.toInt()}", fontSize = 16.sp)
-                    Slider(
-                        value = borderSize,
-                        onValueChange = { borderSize = it },
-                        onValueChangeFinished = {
-                            scope.launch {
-                                dataStore.edit { preferences ->
-                                    preferences[BORDER_SIZE_KEY] = borderSize
-                                }
+                LabelledSlider(
+                    property = borderSize,
+                    label = "Border Size",
+                    onChange = { borderSize = it },
+                    onChangeFinished = {
+                        scope.launch {
+                            dataStore.edit { preferences ->
+                                preferences[BORDER_SIZE_KEY] = borderSize
                             }
-                        },
-                        valueRange = 0f..5f,
-                        steps = 4
-                    )
-                }
+                        }
+                    },
+                    startRange = 0f,
+                    endRange = 5f,
+                    steps = 4
+                )
             }
 
             Column(
@@ -198,7 +190,6 @@ fun SettingsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                 )
-
 
                 DropdownMenu(
                     expanded = colorDropdownExpanded,
@@ -307,5 +298,33 @@ fun CursorPreviewArea(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun LabelledSlider(
+    property: Float,
+    label: String,
+    onChange: (Float) -> Unit,
+    onChangeFinished: () -> Unit,
+    startRange: Float,
+    endRange: Float,
+    steps: Int = 0
+) {
+    Column(
+        modifier = Modifier
+            .padding(vertical = 5.dp)
+    ) {
+        Text("$label: ${property.toInt()}", fontSize = 16.sp)
+        Spacer(
+            modifier = Modifier.width(16.dp)
+        )
+        Slider(
+            value = property,
+            onValueChange = onChange,
+            onValueChangeFinished =  onChangeFinished,
+            valueRange = startRange..endRange,
+            steps = steps
+        )
     }
 }
