@@ -256,6 +256,8 @@ fun SettingsScreen(
                 modifier = Modifier.padding(24.dp)
             ) {
                 SectionHeading("Touchpad Settings")
+                Spacer(modifier = Modifier.height(10.dp))
+                TouchpadPositionCard(onEditClick = {})
             }
         }
 
@@ -327,7 +329,7 @@ fun LabelledSlider(
         Slider(
             value = property,
             onValueChange = onChange,
-            onValueChangeFinished =  onChangeFinished,
+            onValueChangeFinished = onChangeFinished,
             valueRange = startRange..endRange,
             steps = steps
         )
@@ -344,4 +346,73 @@ fun SectionHeading(
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.primary,
     )
+}
+
+@Composable
+fun TouchpadPositionCard(
+    onEditClick: () -> Unit
+) {
+    Card {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "Touchpad Layout",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Customize the placement of the touchpad.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 16.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+
+            Box(
+                modifier = Modifier
+                    .size(width = 64.dp, height = 48.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.background,
+                        shape = RoundedCornerShape(6.dp)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(6.dp)
+                    ),
+                contentAlignment = Alignment.BottomEnd
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(width = 32.dp, height = 24.dp)
+                        .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Button(
+                onClick = onEditClick,
+                contentPadding = PaddingValues(horizontal = 14.dp, 8.dp)
+            ) {
+                Text("Edit")
+            }
+        }
+    }
 }
