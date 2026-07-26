@@ -66,12 +66,18 @@ class MainActivity : ComponentActivity() {
 
                     composable ("settings") {
                         SettingsScreen(
-                            onBackPressed = {
-                                navController.popBackStack()
+                            onBackPressed = { navController.popBackStack() },
+                            onNavigateToTouchpadPositionEditor = {
+                                navController.navigate("touchpad_position_editor")
                             }
                         )
                     }
 
+                    composable("touchpad_position_editor") {
+                        TouchpadPositionEditor(
+                            onBackPressed = { navController.popBackStack() }
+                        )
+                    }
                 }
             }
         }
@@ -117,7 +123,7 @@ fun PermissionCard(
 
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -127,18 +133,18 @@ fun PermissionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(22.dp),
+                .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(title, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
+                Text(title, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     subtitle,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 14.sp
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
 

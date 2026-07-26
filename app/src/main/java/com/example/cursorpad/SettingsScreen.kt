@@ -70,7 +70,8 @@ val colorOptions = listOf(
 @Preview
 @Composable
 fun SettingsScreen(
-    onBackPressed: () -> Unit = {}
+    onBackPressed: () -> Unit = {},
+    onNavigateToTouchpadPositionEditor: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val dataStore = context.dataStore
@@ -257,7 +258,7 @@ fun SettingsScreen(
             ) {
                 SectionHeading("Touchpad Settings")
                 Spacer(modifier = Modifier.height(10.dp))
-                TouchpadPositionCard(onEditClick = {})
+                TouchpadPositionCard(onEditClick = { onNavigateToTouchpadPositionEditor() })
             }
         }
 
@@ -381,7 +382,7 @@ fun TouchpadPositionCard(
 
             Box(
                 modifier = Modifier
-                    .size(width = 64.dp, height = 48.dp)
+                    .size(width = 32.dp, height = 48.dp)
                     .background(
                         color = MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(6.dp)
@@ -395,7 +396,7 @@ fun TouchpadPositionCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(width = 32.dp, height = 24.dp)
+                        .size(width = 18.dp, height = 18.dp)
                         .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
                         .border(
                             width = 1.dp,
