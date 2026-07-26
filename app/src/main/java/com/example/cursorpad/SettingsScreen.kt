@@ -7,8 +7,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,6 +20,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -121,13 +126,7 @@ fun SettingsScreen(
                 .padding(innerPadding)
         ) {
             Column(modifier = Modifier.padding(top = 24.dp, start = 24.dp, end = 24.dp)) {
-                Text(
-                    "Cursor Settings",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-
+                SectionHeading("Cursor Settings")
                 Spacer(modifier = Modifier.height(10.dp))
 
                 CursorPreviewArea(
@@ -252,6 +251,12 @@ fun SettingsScreen(
                     }
                 )
             }
+
+            Column(
+                modifier = Modifier.padding(24.dp)
+            ) {
+                SectionHeading("Touchpad Settings")
+            }
         }
 
     }
@@ -327,4 +332,16 @@ fun LabelledSlider(
             steps = steps
         )
     }
+}
+
+@Composable
+fun SectionHeading(
+    heading: String,
+) {
+    Text(
+        heading,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+    )
 }
