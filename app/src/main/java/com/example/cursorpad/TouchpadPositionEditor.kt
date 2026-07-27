@@ -2,6 +2,7 @@ package com.example.cursorpad
 
 import android.annotation.SuppressLint
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -25,13 +26,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,9 +45,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesOf
+import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Preview
@@ -55,6 +62,13 @@ fun TouchpadPositionEditor(
     val context = LocalContext.current
     val dataStore = context.dataStore
     val preferences by dataStore.data.collectAsState(initial = preferencesOf())
+    val scope = rememberCoroutineScope()
+
+    // Create state values
+    var padX by remember { mutableStateOf(0.dp) }
+    var padY by remember { mutableStateOf(0.dp) }
+    var padWidth by remember { mutableStateOf(0.dp) }
+    var padHeight by remember { mutableStateOf(0.dp) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -68,6 +82,24 @@ fun TouchpadPositionEditor(
                         Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
+                actions = {
+                    TextButton(
+                        onClick = {
+                            scope.launch {
+                                dataStore.edit { preferences ->
+                                    preferences[TOUCHPAD_X_KEY] = padX.value
+                                    preferences[TOUCHPAD_Y_KEY] = padY.value
+                                    preferences[TOUCHPAD_WIDTH_KEY] = padWidth.value
+                                    preferences[TOUCHPAD_HEIGHT_KEY] = padHeight.value
+                                }
+
+                                Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    ) {
+                        Text("Save", fontWeight = FontWeight.Bold)
+                    }
+                },
 
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
@@ -78,22 +110,18 @@ fun TouchpadPositionEditor(
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            val defaultWidth = 140.dp
-            val defaultHeight = 140.dp
-            val defaultX = maxWidth - defaultWidth - 24.dp
-            val defaultY = maxHeight - defaultHeight - 24.dp
+            LaunchedEffect(preferences, maxWidth, maxHeight) {
+                val defaultWidth = 140.dp
+                val defaultHeight = 140.dp
+                val defaultX = maxWidth - defaultWidth - 24.dp
+                val defaultY = maxHeight - defaultHeight - 24.dp
 
-            // Read saved position values
-            var savedWidth = preferences[TOUCHPAD_WIDTH_KEY]?.dp ?: defaultWidth
-            var savedHeight = preferences[TOUCHPAD_HEIGHT_KEY]?.dp ?: defaultHeight
-            var savedX = preferences[TOUCHPAD_X_KEY]?.dp ?: defaultX
-            var savedY = preferences[TOUCHPAD_Y_KEY]?.dp ?: defaultY
-
-            // Create state values
-            var padX by remember { mutableStateOf(savedX) }
-            var padY by remember { mutableStateOf(savedY) }
-            var padWidth by remember { mutableStateOf(savedWidth) }
-            var padHeight by remember { mutableStateOf(savedHeight) }
+                // Read saved position values
+                padX = preferences[TOUCHPAD_X_KEY]?.dp ?: defaultX
+                padY = preferences[TOUCHPAD_Y_KEY]?.dp ?: defaultY
+                padWidth = preferences[TOUCHPAD_WIDTH_KEY]?.dp ?: defaultWidth
+                padHeight = preferences[TOUCHPAD_HEIGHT_KEY]?.dp ?: defaultHeight
+            }
 
             Box(
                 modifier = Modifier
