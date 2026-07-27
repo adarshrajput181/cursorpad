@@ -22,6 +22,7 @@ import android.view.accessibility.AccessibilityManager
 import android.widget.ImageView
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
@@ -224,7 +225,9 @@ class TrackpadOverlayService: Service() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.BOTTOM or Gravity.END
+            gravity = Gravity.TOP or Gravity.START
+            x = touchpadRect.left
+            y = touchpadRect.top
         }
 
         windowManager.addView(touchpadView, params)
@@ -342,10 +345,27 @@ class TrackpadOverlayService: Service() {
         val displayMetrics = resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
         val screenWidth = displayMetrics.widthPixels
+        val density = displayMetrics.density
         val cursorAreaHeight = (screenHeight * 0.70f).toInt()
 
+        val preferences = runBlocking { applicationContext.dataStore.data.first() }
+        val defaultWidthDp = 140f
+        val defaultHeightDp = 140f
+        val defaultXDp = screenWidth / density - defaultWidthDp - 24f
+        val defaultYDp = screenHeight / density - defaultHeightDp - 24f
+
+        val padX = preferences[TOUCHPAD_X_KEY] ?: defaultXDp
+        val padY = preferences[TOUCHPAD_Y_KEY] ?: defaultYDp
+        val padWidth = preferences[TOUCHPAD_WIDTH_KEY] ?: defaultWidthDp
+        val padHeight = preferences[TOUCHPAD_HEIGHT_KEY] ?: defaultHeightDp
+
+        val padXPx = (padX * density).toInt()
+        val padYPx = (padY * density).toInt()
+        val padWidthPx = (padWidth * density).toInt()
+        val padHeightPx = (padHeight * density).toInt()
+
         cursorAreaRect = Rect(0, 0,screenWidth, cursorAreaHeight)
-        touchpadRect = Rect((screenWidth * 0.4f).toInt(), cursorAreaHeight, screenWidth, screenHeight)
+        touchpadRect = Rect(padXPx, padYPx, padXPx + padWidthPx, padYPx + padHeightPx)
     }
 
     private fun createCursorOverlay() {
