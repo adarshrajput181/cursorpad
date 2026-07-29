@@ -1,6 +1,7 @@
 package com.example.cursorpad
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -142,40 +143,79 @@ fun TouchpadPositionEditor(
                     .background(color = Color(0xAA333333), shape = RoundedCornerShape(20.dp))
                     .border(width = 2.dp, color = Color.White, shape = RoundedCornerShape(20.dp))
                     .pointerInput(Unit) {
-                        var isResizeMode = false
+                        // distance away from the corners
+                        val margin = 20.dp
+                        // distance from the edge that still triggers resize
+                        val hitSlop = 30.dp
+                        var mode = 0
 
                         detectDragGestures(
                             onDragStart = { offset: Offset ->
                                 val offsetX = offset.x.toDp()
                                 val offsetY = offset.y.toDp()
-                                val handleSize = 30.dp
 
-                                isResizeMode = offsetX <= handleSize && offsetY <= handleSize
+                                val isXinCenter = offsetX in margin..(padWidth - margin)
+                                val isYinCenter = offsetY in margin..(padHeight - margin)
+
+                                mode = when {
+                                    // Top Handle
+                                    offsetY <= hitSlop && isXinCenter -> 1
+                                    // Bottom Handle
+                                    offsetY >= padHeight - hitSlop && isXinCenter -> 2
+                                    // Left Handle
+                                    offsetX <= hitSlop && isYinCenter -> 3
+                                    // Right Handle
+                                    offsetX >= padWidth - hitSlop && isYinCenter -> 4
+                                    // Move mode
+                                    else -> 0
+                                }
                             },
                             onDrag = { change, dragAmount ->
                                 val offsetX = dragAmount.x.toDp()
                                 val offsetY = dragAmount.y.toDp()
                                 change.consume()
 
-                                if (isResizeMode) {
-                                    val newX = padX + offsetX
-                                    val newY = padY + offsetY
-                                    val newWidth = padWidth - offsetX
-                                    val newHeight = padHeight - offsetY
-
-                                    if (newWidth >= 50.dp && newX >= 0.dp && newX + newWidth <= maxWidth) {
-                                        padX = newX
-                                        padWidth = newWidth
-
+                                when (mode) {
+                                    0 -> {
+                                        padX = (padX + offsetX).coerceIn(0.dp, maxWidth - padWidth)
+                                        padY = (padY + offsetY).coerceIn(0.dp, maxHeight - padHeight)
                                     }
 
-                                    if (newHeight >= 50.dp && newY >= 0.dp && newY + newHeight <= maxHeight) {
-                                        padY = newY
-                                        padHeight = newHeight
+                                    // Top handle logic
+                                    1 -> {
+                                        val newY = padY + offsetY
+                                        val newHeight = padHeight - offsetY
+                                        if (newY >= 0.dp && newHeight >= 50.dp) {
+                                            padY = newY
+                                            padHeight = newHeight
+                                        }
                                     }
-                                } else {
-                                    padX = (padX + offsetX).coerceIn(0.dp, maxWidth - padWidth)
-                                    padY = (padY + offsetY).coerceIn(0.dp, maxHeight - padHeight)
+
+                                    // Bottom handle
+                                    2 -> {
+                                        val newHeight = padHeight + offsetY
+                                        if (newHeight >= 50.dp && padY + newHeight <= maxHeight) {
+                                            padHeight = newHeight
+                                        }
+                                    }
+
+                                    // Left handle
+                                    3 -> {
+                                        val newX = padX + offsetX
+                                        val newWidth = padWidth - offsetX
+                                        if (newX >= 0.dp && newWidth >= 50.dp) {
+                                            padX = newX
+                                            padWidth = newWidth
+                                        }
+                                    }
+
+                                    // Right handle
+                                    4 -> {
+                                        val newWidth = padWidth + offsetX
+                                        if (newWidth >= 50.dp && padY + newWidth <= maxHeight) {
+                                            padWidth = newWidth
+                                        }
+                                    }
                                 }
                             }
                         )
@@ -187,18 +227,39 @@ fun TouchpadPositionEditor(
                         .align(Alignment.Center)
                         .size(24.dp)
                         .clip(CircleShape)
-                        .background(color = Color.Blue)
                         .border(width = 2.dp, color = Color.White, shape = CircleShape)
                 )
 
-                // Top left Handle for resizing
                 Box(
                     modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .size(24.dp)
+                        .align(Alignment.TopCenter)
                         .clip(CircleShape)
-                        .background(color = Color.Blue)
-                        .border(width = 2.dp, color = Color.White, shape = CircleShape)
+                        .background(Color.White)
+                        .size(width = 40.dp, height = 6.dp)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .size(width = 40.dp, height = 6.dp)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .size(width = 6.dp, height = 40.dp)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .size(width = 6.dp, height = 40.dp)
                 )
             }
         }
