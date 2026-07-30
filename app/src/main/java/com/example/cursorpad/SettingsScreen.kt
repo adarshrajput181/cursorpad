@@ -10,19 +10,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -78,8 +79,8 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
 
     val settings by dataStore.data.collectAsState(initial = preferencesOf())
-    var cursorSize by remember { mutableStateOf(settings[CURSOR_SIZE_KEY] ?: 30f) }
-    var borderSize by remember { mutableStateOf(settings[BORDER_SIZE_KEY] ?: 2f) }
+    var cursorSize by remember { mutableFloatStateOf(settings[CURSOR_SIZE_KEY] ?: 30f) }
+    var borderSize by remember { mutableFloatStateOf(settings[BORDER_SIZE_KEY] ?: 2f) }
     val useDynamicColor = settings[DYNAMIC_COLOR_KEY] ?: true
     val savedColorInt = settings[CURSOR_COLOR_KEY] ?: Color.Red.toArgb()
     val currentDynamicColorInt = MaterialTheme.colorScheme.primary.toArgb()
@@ -94,11 +95,13 @@ fun SettingsScreen(
     }
 
     var showDot = settings[SHOW_DOT_KEY] ?: true
+    var sensitivity by remember { mutableFloatStateOf(settings[TOUCHPAD_SENSITIVITY_KEY] ?: 1.6f) }
 
     // Update state if the settings change
     LaunchedEffect(settings) {
         cursorSize = settings[CURSOR_SIZE_KEY] ?: 30f
         borderSize = settings[BORDER_SIZE_KEY] ?: 2f
+        sensitivity = settings[TOUCHPAD_SENSITIVITY_KEY] ?: 1.6f
     }
 
     Scaffold(
@@ -125,6 +128,8 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 20.dp)
         ) {
             Column(modifier = Modifier.padding(top = 24.dp, start = 24.dp, end = 24.dp)) {
                 SectionHeading("Cursor Settings")
@@ -258,7 +263,28 @@ fun SettingsScreen(
             ) {
                 SectionHeading("Touchpad Settings")
                 Spacer(modifier = Modifier.height(10.dp))
+
                 TouchpadPositionCard(onEditClick = { onNavigateToTouchpadPositionEditor() })
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Column(
+                    modifier = Modifier.padding(vertical = 5.dp)
+                ) {
+                    Text("Touchpad Sensitivity: ${(sensitivity * 100).toInt()}%", fontSize = 16.sp)
+                    Slider(
+                        value = sensitivity,
+                        onValueChange = { sensitivity = it },
+                        onValueChangeFinished = {
+                            scope.launch {
+                                dataStore.edit { preferences ->
+                                    preferences[TOUCHPAD_SENSITIVITY_KEY] = sensitivity
+                                }
+                            }
+                        },
+                        valueRange = 1.0f..2.0f,
+                        steps = 9
+                    )
+                }
             }
         }
 
@@ -317,22 +343,19 @@ fun LabelledSlider(
     onChangeFinished: () -> Unit,
     startRange: Float,
     endRange: Float,
-    steps: Int = 0
+    steps: Int = 0,
 ) {
     Column(
         modifier = Modifier
             .padding(vertical = 5.dp)
     ) {
         Text("$label: ${property.toInt()}", fontSize = 16.sp)
-        Spacer(
-            modifier = Modifier.width(16.dp)
-        )
         Slider(
             value = property,
             onValueChange = onChange,
             onValueChangeFinished = onChangeFinished,
             valueRange = startRange..endRange,
-            steps = steps
+            steps = steps,
         )
     }
 }

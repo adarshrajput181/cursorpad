@@ -44,7 +44,7 @@ class TrackpadOverlayService: Service() {
     private var cursorX = 0f
     private var cursorY = 0f
     private var isTouching = false
-    private val sensitivity = 1.6f
+    private var sensitivity = 1.6f
 
     private lateinit var touchpadRect: Rect
     private lateinit var cursorAreaRect: Rect
@@ -377,6 +377,8 @@ class TrackpadOverlayService: Service() {
         val showDot = preferences[SHOW_DOT_KEY] ?: true
         val density = resources.displayMetrics.density
 
+        sensitivity = preferences[TOUCHPAD_SENSITIVITY_KEY] ?: 1.6f
+
         val cursorSizeDP = (cursorSize * density).toInt()
         val borderSizeDP = borderSize * density
 
@@ -420,7 +422,7 @@ class TrackpadOverlayService: Service() {
 
     /**
      * Moves cursor relative to its current position (like a laptop trackpad) based on the displacement.
-     * Movement magnitude is derived based on the ratio of the cursor area and touchpad dimensions.
+     * Movement magnitude is derived based on the sensitivity.
      */
     private fun moveCursorRelative(dx: Float, dy: Float) {
         if (cursorWidth == 0 || cursorHeight == 0) return

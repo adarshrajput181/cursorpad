@@ -51,8 +51,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesOf
 import kotlinx.coroutines.launch
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
-@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TouchpadPositionEditor(
