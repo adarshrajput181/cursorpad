@@ -147,10 +147,12 @@ class TrackpadOverlayService: Service() {
     private fun createTouchpadOverlay() {
         val cornerRadiusPx = 20f * resources.displayMetrics.density
         val borderWidthPx = (2f * resources.displayMetrics.density).toInt()
+        val preferences = runBlocking { applicationContext.dataStore.data.first() }
+        val touchpadColor = preferences[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt()
 
         touchpadView = View(this).apply {
             val drawable = GradientDrawable().apply {
-                setColor(0xAA333333.toInt())
+                setColor(touchpadColor)
                 cornerRadius = cornerRadiusPx
                 setStroke(borderWidthPx, Color.WHITE)
             }

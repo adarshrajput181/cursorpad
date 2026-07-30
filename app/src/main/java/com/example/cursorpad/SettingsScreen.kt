@@ -1,5 +1,7 @@
 package com.example.cursorpad
 
+import android.media.tv.TvContract
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -97,11 +99,22 @@ fun SettingsScreen(
     var showDot = settings[SHOW_DOT_KEY] ?: true
     var sensitivity by remember { mutableFloatStateOf(settings[TOUCHPAD_SENSITIVITY_KEY] ?: 1.6f) }
 
+    var touchpadColor by remember { mutableStateOf(settings[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt())}
+    // Extract the rgb values from ARGB
+    var rgb = touchpadColor and 0x00FFFFFF
+    // Extract the alpha channel value and convert it to percent
+    val initialAlphaPercent = ((touchpadColor shr 24) and 0xFF) * 100 / 255
+    var alphaPercent by remember { mutableStateOf(initialAlphaPercent)}
+
     // Update state if the settings change
     LaunchedEffect(settings) {
         cursorSize = settings[CURSOR_SIZE_KEY] ?: 30f
         borderSize = settings[BORDER_SIZE_KEY] ?: 2f
         sensitivity = settings[TOUCHPAD_SENSITIVITY_KEY] ?: 1.6f
+        touchpadColor = settings[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt()
+        rgb = touchpadColor and 0x00FFFFFF
+        val savedAlpha = ((touchpadColor shr 24) and 0xFF)
+        alphaPercent = (savedAlpha * 100) / 255
     }
 
     Scaffold(
@@ -270,7 +283,7 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier.padding(vertical = 5.dp)
                 ) {
-                    Text("Touchpad Sensitivity: ${(sensitivity * 100).toInt()}%", fontSize = 16.sp)
+                    Text("Sensitivity: ${(sensitivity * 100).toInt()}%", fontSize = 16.sp)
                     Slider(
                         value = sensitivity,
                         onValueChange = { sensitivity = it },
@@ -282,7 +295,29 @@ fun SettingsScreen(
                             }
                         },
                         valueRange = 1.0f..2.0f,
-                        steps = 9
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.padding(vertical = 5.dp)
+                ) {
+                    Text("Opacity: $alphaPercent%", fontSize = 16.sp)
+                    Slider(
+                        value = alphaPercent.toFloat(),
+                        onValueChange = { alphaPercent = it.toInt() },
+                        onValueChangeFinished = {
+                            // Calculate alpha channel value
+                            val alphaInt = alphaPercent * 255 / 100
+                            // Combine the alpha with rgb
+                            val newColor = (alphaInt shl 24) or rgb
+
+                            scope.launch {
+                                dataStore.edit { preferences ->
+                                    preferences[TOUCHPAD_COLOR_KEY] = newColor
+                                }
+                            }
+                        },
+                        valueRange = 0.0f..100.0f,
                     )
                 }
             }
