@@ -6,12 +6,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -33,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -69,6 +73,15 @@ val colorOptions = listOf(
     "White" to Color.White
 )
 
+val touchpadColorOptions = listOf(
+    "Dynamic" to null,
+    "Default" to 0xAA333333,
+    "Dark" to 0xAA222222,
+    "Light" to 0xAAE0E0E0,
+    "Blue" to 0xAA4A90E2,
+    "Green" to 0xAA66BB6A
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
@@ -99,12 +112,16 @@ fun SettingsScreen(
     var showDot = settings[SHOW_DOT_KEY] ?: true
     var sensitivity by remember { mutableFloatStateOf(settings[TOUCHPAD_SENSITIVITY_KEY] ?: 1.6f) }
 
-    var touchpadColor by remember { mutableStateOf(settings[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt())}
+    var touchpadColor by remember {
+        mutableStateOf(
+            settings[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt()
+        )
+    }
     // Extract the rgb values from ARGB
     var rgb = touchpadColor and 0x00FFFFFF
     // Extract the alpha channel value and convert it to percent
     val initialAlphaPercent = ((touchpadColor shr 24) and 0xFF) * 100 / 255
-    var alphaPercent by remember { mutableStateOf(initialAlphaPercent)}
+    var alphaPercent by remember { mutableStateOf(initialAlphaPercent) }
 
     // Update state if the settings change
     LaunchedEffect(settings) {
@@ -298,6 +315,7 @@ fun SettingsScreen(
                     )
                 }
 
+
                 Column(
                     modifier = Modifier.padding(vertical = 5.dp)
                 ) {
@@ -320,11 +338,101 @@ fun SettingsScreen(
                         valueRange = 0.0f..100.0f,
                     )
                 }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text("Touchpad Color", style = MaterialTheme.typography.titleSmall)
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    touchpadColorOptions.forEach { (label, color) ->
+                        var swatchRgb: Int
+                        var colorInt =
+                            color?.toInt()
+                                ?: MaterialTheme.colorScheme.primaryContainer.toArgb()
+                        swatchRgb = colorInt.stripAlpha()
+                        val isSelected = swatchRgb == touchpadColor.stripAlpha()
+
+                        ColorSwatchItem(
+                            label = label,
+                            colorInt = colorInt,
+                            isSelected = isSelected,
+                            onClick = {
+                                val currentAlpha = (touchpadColor shr 24) and 0xFF
+                                val newColor = (currentAlpha shl 24) or swatchRgb
+
+                                scope.launch {
+                                    dataStore.edit { preferences ->
+                                        preferences[TOUCHPAD_COLOR_KEY] = newColor
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ColorSwatchItem(
+    label: String,
+    colorInt: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(colorInt))
+                .border(
+                    width = if (isSelected) 2.5.dp else 1.dp,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable { onClick() }
+        ) {
+            if (colorInt == MaterialTheme.colorScheme.primaryContainer.toArgb()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = Color.Black.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = "Dynamic Color",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
         }
 
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = if (isSelected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
     }
 }
+
+private fun Int.stripAlpha(): Int {
+    return this and 0x00FFFFFF
+}
+
 
 @Composable
 fun CursorPreviewArea(
