@@ -3,6 +3,7 @@ package com.example.cursorpad
 import android.media.tv.TvContract
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,6 +47,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,6 +55,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -113,7 +118,7 @@ fun SettingsScreen(
     var sensitivity by remember { mutableFloatStateOf(settings[TOUCHPAD_SENSITIVITY_KEY] ?: 1.6f) }
 
     var touchpadColor by remember {
-        mutableStateOf(
+        mutableIntStateOf(
             settings[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt()
         )
     }
@@ -121,7 +126,7 @@ fun SettingsScreen(
     var rgb = touchpadColor and 0x00FFFFFF
     // Extract the alpha channel value and convert it to percent
     val initialAlphaPercent = ((touchpadColor shr 24) and 0xFF) * 100 / 255
-    var alphaPercent by remember { mutableStateOf(initialAlphaPercent) }
+    var alphaPercent by remember { mutableIntStateOf(initialAlphaPercent) }
 
     // Update state if the settings change
     LaunchedEffect(settings) {
@@ -315,6 +320,28 @@ fun SettingsScreen(
                     )
                 }
 
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Touchpad preview
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                ) {
+                    TransparencyGrid(modifier = Modifier.fillMaxSize())
+
+                    Box(
+                        modifier = Modifier
+                            .size(140.dp, 80.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(touchpadColor))
+                            .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .align(Alignment.Center)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Column(
                     modifier = Modifier.padding(vertical = 5.dp)
@@ -351,7 +378,7 @@ fun SettingsScreen(
                 ) {
                     touchpadColorOptions.forEach { (label, color) ->
                         var swatchRgb: Int
-                        var colorInt =
+                        val colorInt =
                             color?.toInt()
                                 ?: MaterialTheme.colorScheme.primaryContainer.toArgb()
                         swatchRgb = colorInt.stripAlpha()
@@ -432,7 +459,6 @@ fun ColorSwatchItem(
 private fun Int.stripAlpha(): Int {
     return this and 0x00FFFFFF
 }
-
 
 @Composable
 fun CursorPreviewArea(
@@ -579,6 +605,29 @@ fun TouchpadPositionCard(
                 contentPadding = PaddingValues(horizontal = 14.dp, 8.dp)
             ) {
                 Text("Edit")
+            }
+        }
+    }
+}
+
+@Composable
+fun TransparencyGrid(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val tileSize = 12.dp.toPx()
+        val width = size.width
+        val height = size.height
+        val lightTile = Color(0xFFE0E0E0)
+        val darkTile = Color(0xFF9E9E9E)
+
+        for (x in 0..(width / tileSize).toInt()) {
+            for (y in 0.. (height / tileSize).toInt()) {
+                val isEven = (x + y) % 2 == 0
+
+                drawRect(
+                    color = if (isEven) lightTile else darkTile,
+                    topLeft = Offset(x * tileSize, y * tileSize),
+                    size = Size(tileSize, tileSize)
+                )
             }
         }
     }
