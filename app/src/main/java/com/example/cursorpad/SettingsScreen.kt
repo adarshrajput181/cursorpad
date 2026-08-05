@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -128,6 +129,8 @@ fun SettingsScreen(
     val initialAlphaPercent = ((touchpadColor shr 24) and 0xFF) * 100 / 255
     var alphaPercent by remember { mutableIntStateOf(initialAlphaPercent) }
 
+    var activationStripWidth by remember { mutableStateOf(settings[ACTIVATION_STRIP_WIDTH] ?: 20f)}
+
     // Update state if the settings change
     LaunchedEffect(settings) {
         cursorSize = settings[CURSOR_SIZE_KEY] ?: 30f
@@ -137,6 +140,7 @@ fun SettingsScreen(
         rgb = touchpadColor and 0x00FFFFFF
         val savedAlpha = ((touchpadColor shr 24) and 0xFF)
         alphaPercent = (savedAlpha * 100) / 255
+        activationStripWidth = settings[ACTIVATION_STRIP_WIDTH] ?: 20f
     }
 
     Scaffold(
@@ -322,6 +326,8 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
+                Text("Touchpad Color", style = MaterialTheme.typography.titleSmall)
+                Spacer(modifier = Modifier.height(10.dp))
                 // Touchpad preview
                 Box(
                     modifier = Modifier
@@ -341,35 +347,7 @@ fun SettingsScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Column(
-                    modifier = Modifier.padding(vertical = 5.dp)
-                ) {
-                    Text("Opacity: $alphaPercent%", fontSize = 16.sp)
-                    Slider(
-                        value = alphaPercent.toFloat(),
-                        onValueChange = { alphaPercent = it.toInt() },
-                        onValueChangeFinished = {
-                            // Calculate alpha channel value
-                            val alphaInt = alphaPercent * 255 / 100
-                            // Combine the alpha with rgb
-                            val newColor = (alphaInt shl 24) or rgb
-
-                            scope.launch {
-                                dataStore.edit { preferences ->
-                                    preferences[TOUCHPAD_COLOR_KEY] = newColor
-                                }
-                            }
-                        },
-                        valueRange = 0.0f..100.0f,
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Text("Touchpad Color", style = MaterialTheme.typography.titleSmall)
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -401,6 +379,47 @@ fun SettingsScreen(
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(10.dp))
+                Text("Opacity: $alphaPercent%", fontSize = 16.sp)
+                Slider(
+                    value = alphaPercent.toFloat(),
+                    onValueChange = { alphaPercent = it.toInt() },
+                    onValueChangeFinished = {
+                        // Calculate alpha channel value
+                        val alphaInt = alphaPercent * 255 / 100
+                        // Combine the alpha with rgb
+                        val newColor = (alphaInt shl 24) or rgb
+
+                        scope.launch {
+                            dataStore.edit { preferences ->
+                                preferences[TOUCHPAD_COLOR_KEY] = newColor
+                            }
+                        }
+                    },
+                    valueRange = 0.0f..100.0f,
+                )
+            }
+
+            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                SectionHeading("Activation Strip Settings")
+
+                Spacer(modifier = Modifier.height(10.dp))
+                LabelledSlider(
+                    property = activationStripWidth,
+                    label = "Width",
+                    onChange = { activationStripWidth = it },
+                    onChangeFinished = {
+                        scope.launch {
+                            dataStore.edit { preferences ->
+                                preferences[ACTIVATION_STRIP_WIDTH] = activationStripWidth
+                            }
+                        }
+                    },
+                    startRange = 10f,
+                    endRange = 40f,
+                    steps = 29
+                )
             }
         }
     }

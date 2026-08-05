@@ -78,13 +78,13 @@ class TrackpadOverlayService: Service() {
         computeScreenAreas()
         createTouchpadOverlay()
         createCursorOverlay()
-        createListenerOverlay()
+        createActivationStripOverlay()
 
         startService(Intent(this, CursorClickAccessibilityService::class.java))
     }
 
     // Overlay for listening for swipe gesture to toggle touchpad.
-    private fun createListenerOverlay() {
+    private fun createActivationStripOverlay() {
         listenerView = View(this).apply {
             setBackgroundColor(0x00FFFFFF)
 
@@ -117,10 +117,12 @@ class TrackpadOverlayService: Service() {
             }
         }
 
-        val width = (10 * resources.displayMetrics.density).toInt()
+        val preferences = runBlocking { applicationContext.dataStore.data.first() }
+        val width = preferences[ACTIVATION_STRIP_WIDTH] ?: 20f
+        val widthPx = (width * resources.displayMetrics.density).toInt()
         val screenHeight = resources.displayMetrics.heightPixels
         val params = WindowManager.LayoutParams(
-            width,
+            widthPx,
             (screenHeight * 0.3f).toInt(),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
