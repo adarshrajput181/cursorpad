@@ -1,7 +1,5 @@
 package com.example.cursorpad
 
-import android.media.tv.TvContract
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -18,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -38,7 +35,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -56,7 +52,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -129,7 +124,6 @@ fun SettingsScreen(
     val initialAlphaPercent = ((touchpadColor shr 24) and 0xFF) * 100 / 255
     var alphaPercent by remember { mutableIntStateOf(initialAlphaPercent) }
 
-    var activationStripWidth by remember { mutableStateOf(settings[ACTIVATION_STRIP_WIDTH] ?: 20f)}
 
     // Update state if the settings change
     LaunchedEffect(settings) {
@@ -140,7 +134,6 @@ fun SettingsScreen(
         rgb = touchpadColor and 0x00FFFFFF
         val savedAlpha = ((touchpadColor shr 24) and 0xFF)
         alphaPercent = (savedAlpha * 100) / 255
-        activationStripWidth = settings[ACTIVATION_STRIP_WIDTH] ?: 20f
     }
 
     Scaffold(
@@ -400,28 +393,44 @@ fun SettingsScreen(
                     valueRange = 0.0f..100.0f,
                 )
             }
-
-            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-                SectionHeading("Activation Strip Settings")
-
-                Spacer(modifier = Modifier.height(10.dp))
-                LabelledSlider(
-                    property = activationStripWidth,
-                    label = "Width",
-                    onChange = { activationStripWidth = it },
-                    onChangeFinished = {
-                        scope.launch {
-                            dataStore.edit { preferences ->
-                                preferences[ACTIVATION_STRIP_WIDTH] = activationStripWidth
-                            }
-                        }
-                    },
-                    startRange = 10f,
-                    endRange = 40f,
-                    steps = 29
-                )
-            }
+            
+            ActivationStripSettings()
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ActivationStripSettings() {
+    val context = LocalContext.current
+    val dataStore = context.dataStore
+    val scope = rememberCoroutineScope()
+
+    val settings by dataStore.data.collectAsState(initial = preferencesOf())
+    var activationStripWidth by remember { mutableStateOf(settings[ACTIVATION_STRIP_WIDTH] ?: 20f)}
+    LaunchedEffect(settings) {
+        activationStripWidth = settings[ACTIVATION_STRIP_WIDTH] ?: 20f
+    }
+
+    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+        SectionHeading("Activation Strip Settings")
+
+        Spacer(modifier = Modifier.height(10.dp))
+        LabelledSlider(
+            property = activationStripWidth,
+            label = "Width",
+            onChange = { activationStripWidth = it },
+            onChangeFinished = {
+                scope.launch {
+                    dataStore.edit { preferences ->
+                        preferences[ACTIVATION_STRIP_WIDTH] = activationStripWidth
+                    }
+                }
+            },
+            startRange = 10f,
+            endRange = 40f,
+            steps = 29
+        )
     }
 }
 
