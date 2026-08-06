@@ -393,7 +393,7 @@ fun SettingsScreen(
                     valueRange = 0.0f..100.0f,
                 )
             }
-            
+
             ActivationStripSettings()
         }
     }
@@ -407,12 +407,15 @@ fun ActivationStripSettings() {
     val scope = rememberCoroutineScope()
 
     val settings by dataStore.data.collectAsState(initial = preferencesOf())
-    var activationStripWidth by remember { mutableStateOf(settings[ACTIVATION_STRIP_WIDTH] ?: 20f)}
+    var activationStripWidth by remember { mutableStateOf(settings[ACTIVATION_STRIP_WIDTH] ?: 20f) }
+    var leftStripEnabled by remember { mutableStateOf(settings[ACTIVATION_STRIP_LEFT_ENABLED] ?: true) }
+
     LaunchedEffect(settings) {
         activationStripWidth = settings[ACTIVATION_STRIP_WIDTH] ?: 20f
+        leftStripEnabled = settings[ACTIVATION_STRIP_LEFT_ENABLED] ?: true
     }
 
-    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+    Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 10.dp)) {
         SectionHeading("Activation Strip Settings")
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -431,6 +434,92 @@ fun ActivationStripSettings() {
             endRange = 40f,
             steps = 29
         )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Card {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Left Strip",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Swipe from the left edge to open touchpad.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 16.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(width = 32.dp, height = 48.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.background,
+                            shape = RoundedCornerShape(6.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(6.dp)
+                        ),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(width = 4.dp, height = 18.dp)
+                            .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+                Switch(
+                    checked = leftStripEnabled,
+                    onCheckedChange = { newValue ->
+                        scope.launch { 
+                            dataStore.edit { preferences ->
+                                leftStripEnabled = newValue
+                                preferences[ACTIVATION_STRIP_LEFT_ENABLED] = newValue
+                            }
+                        }
+                    }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            ) {
+
+                Button(
+                    onClick = {},
+                    contentPadding = PaddingValues(horizontal = 14.dp, 8.dp),
+                    enabled = leftStripEnabled
+                ) {
+                    Text("Edit")
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
@@ -648,7 +737,7 @@ fun TransparencyGrid(modifier: Modifier = Modifier) {
         val darkTile = Color(0xFF9E9E9E)
 
         for (x in 0..(width / tileSize).toInt()) {
-            for (y in 0.. (height / tileSize).toInt()) {
+            for (y in 0..(height / tileSize).toInt()) {
                 val isEven = (x + y) % 2 == 0
 
                 drawRect(
