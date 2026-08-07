@@ -69,12 +69,23 @@ class MainActivity : ComponentActivity() {
                             onBackPressed = { navController.popBackStack() },
                             onNavigateToTouchpadPositionEditor = {
                                 navController.navigate("touchpad_position_editor")
+                            },
+                            onNavigateToStripEditor = { side ->
+                                navController.navigate("activation_strip_editor/$side")
                             }
                         )
                     }
 
                     composable("touchpad_position_editor") {
                         TouchpadPositionEditor(
+                            onBackPressed = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable("activation_strip_editor/{side}") { backStackEntry ->
+                        val side = backStackEntry.arguments?.getString("side") ?: "left"
+                        ActivationStripEditor(
+                            side = side,
                             onBackPressed = { navController.popBackStack() }
                         )
                     }

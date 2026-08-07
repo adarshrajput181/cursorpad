@@ -88,7 +88,8 @@ val touchpadColorOptions = listOf(
 @Composable
 fun SettingsScreen(
     onBackPressed: () -> Unit = {},
-    onNavigateToTouchpadPositionEditor: () -> Unit = {}
+    onNavigateToTouchpadPositionEditor: () -> Unit = {},
+    onNavigateToStripEditor: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val dataStore = context.dataStore
@@ -394,14 +395,18 @@ fun SettingsScreen(
                 )
             }
 
-            ActivationStripSettings()
+            ActivationStripSettings(
+                onNavigateToStripEditor = onNavigateToStripEditor
+            )
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun ActivationStripSettings() {
+fun ActivationStripSettings(
+    onNavigateToStripEditor: (String) -> Unit = {}
+) {
     val context = LocalContext.current
     val dataStore = context.dataStore
     val scope = rememberCoroutineScope()
@@ -510,7 +515,7 @@ fun ActivationStripSettings() {
             ) {
 
                 Button(
-                    onClick = {},
+                    onClick = { onNavigateToStripEditor("left") },
                     contentPadding = PaddingValues(horizontal = 14.dp, 8.dp),
                     enabled = leftStripEnabled
                 ) {
