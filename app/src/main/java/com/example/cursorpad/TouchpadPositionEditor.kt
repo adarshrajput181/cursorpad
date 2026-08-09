@@ -80,10 +80,6 @@ fun TouchpadPositionEditor(
                     }
                 },
                 actions = {
-                    val statusBarHeight = LocalDensity.current.run {
-                        WindowInsets.statusBars.getTop(this).toDp()
-                    }
-
                     TextButton(
                         onClick = {
                             scope.launch {
