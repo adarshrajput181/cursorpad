@@ -413,11 +413,21 @@ fun ActivationStripSettings(
 
     val settings by dataStore.data.collectAsState(initial = preferencesOf())
     var activationStripWidth by remember { mutableStateOf(settings[ACTIVATION_STRIP_WIDTH] ?: 20f) }
-    var leftStripEnabled by remember { mutableStateOf(settings[ACTIVATION_STRIP_LEFT_ENABLED] ?: true) }
+    var leftStripEnabled by remember {
+        mutableStateOf(
+            settings[ACTIVATION_STRIP_LEFT_ENABLED] ?: true
+        )
+    }
+    var rightStripEnabled by remember {
+        mutableStateOf(
+            settings[ACTIVATION_STRIP_RIGHT_ENABLED] ?: true
+        )
+    }
 
     LaunchedEffect(settings) {
         activationStripWidth = settings[ACTIVATION_STRIP_WIDTH] ?: 20f
         leftStripEnabled = settings[ACTIVATION_STRIP_LEFT_ENABLED] ?: true
+        rightStripEnabled = settings[ACTIVATION_STRIP_RIGHT_ENABLED] ?: true
     }
 
     Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 10.dp)) {
@@ -442,89 +452,122 @@ fun ActivationStripSettings(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Card {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+        StripEditorCard(
+            side = "left",
+            stripEnabled = leftStripEnabled,
+            onStripUpdate = { value -> leftStripEnabled = value },
+            onNavigateToStripEditor = onNavigateToStripEditor
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        StripEditorCard(
+            side = "right",
+            stripEnabled = rightStripEnabled,
+            onStripUpdate = { value -> rightStripEnabled = value },
+            onNavigateToStripEditor = onNavigateToStripEditor
+        )
+
+    }
+}
+
+@Composable
+fun StripEditorCard(
+    side: String = "left",
+    stripEnabled: Boolean = true,
+    onStripUpdate: (Boolean) -> Unit,
+    onNavigateToStripEditor: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val dataStore = context.dataStore
+
+    Card {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "Left Strip",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Swipe from the left edge to open touchpad.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 16.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Box(
-                    modifier = Modifier
-                        .size(width = 32.dp, height = 48.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.background,
-                            shape = RoundedCornerShape(6.dp)
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(6.dp)
-                        ),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(width = 4.dp, height = 18.dp)
-                            .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-                Switch(
-                    checked = leftStripEnabled,
-                    onCheckedChange = { newValue ->
-                        scope.launch { 
-                            dataStore.edit { preferences ->
-                                leftStripEnabled = newValue
-                                preferences[ACTIVATION_STRIP_LEFT_ENABLED] = newValue
-                            }
-                        }
-                    }
+                Text(
+                    text = "${if (side == "left") "Left" else "Right"} Strip",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Swipe from the $side edge to open touchpad.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 16.sp
                 )
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-            ) {
+            Spacer(modifier = Modifier.width(16.dp))
 
-                Button(
-                    onClick = { onNavigateToStripEditor("left") },
-                    contentPadding = PaddingValues(horizontal = 14.dp, 8.dp),
-                    enabled = leftStripEnabled
-                ) {
-                    Text("Edit")
-                }
+            val contentAlignment =
+                if (side == "left") Alignment.CenterStart else Alignment.CenterEnd
+            Box(
+                modifier = Modifier
+                    .size(width = 32.dp, height = 48.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.background,
+                        shape = RoundedCornerShape(6.dp)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(6.dp)
+                    ),
+                contentAlignment = contentAlignment
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(width = 4.dp, height = 18.dp)
+                        .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                )
             }
+
+            Spacer(modifier = Modifier.width(12.dp))
+            Switch(
+                checked = stripEnabled,
+                onCheckedChange = { newValue ->
+                    scope.launch {
+                        dataStore.edit { preferences ->
+                            onStripUpdate(newValue)
+                            if (side == "left") {
+                                preferences[ACTIVATION_STRIP_LEFT_ENABLED] = newValue
+                            } else {
+                                preferences[ACTIVATION_STRIP_RIGHT_ENABLED] = newValue
+                            }
+                        }
+                    }
+                }
+            )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+        ) {
+
+            Button(
+                onClick = { onNavigateToStripEditor(side) },
+                contentPadding = PaddingValues(horizontal = 14.dp, 8.dp),
+                enabled = stripEnabled
+            ) {
+                Text("Edit")
+            }
+        }
     }
 }
 
