@@ -4,7 +4,6 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
@@ -12,18 +11,12 @@ import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
 import android.os.IBinder
 import android.provider.Settings
-import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
-import android.widget.ImageView
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
@@ -40,8 +33,8 @@ class TrackpadOverlayService: Service() {
     private lateinit var windowManager: WindowManager
     private lateinit var touchpadView: View
     private lateinit var cursorView: View
-    private lateinit var listenerView: View
     private lateinit var leftStripView: View
+    private lateinit var rightStripView: View
 
     private var cursorX = 0f
     private var cursorY = 0f
@@ -85,62 +78,22 @@ class TrackpadOverlayService: Service() {
     }
 
     // Overlay for listening for swipe gesture to toggle touchpad.
-    // TODO: generalize this to use for both left & right strips
     private fun createActivationStripOverlay() {
-        listenerView = View(this).apply {
-            setBackgroundColor(0x00FFFFFF)
-
-            setOnTouchListener { v, event ->
-                when (event.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> {
-                        listenerX = event.rawX
-
-                        true
-                    }
-
-                    MotionEvent.ACTION_MOVE, MotionEvent.ACTION_CANCEL -> {
-                        true
-                    }
-
-                    MotionEvent.ACTION_UP -> {
-                        val upX = event.rawX
-                        val dx = Math.abs(listenerX - upX)
-                        if (dx > (60 * resources.displayMetrics.density) && listenerX > upX) {
-                            toggleTouchpadVisibility()
-                        }
-
-                        v.performClick()
-                        true
-                    }
-
-                    else -> false
-                }
-            }
-        }
-
         val preferences = runBlocking { applicationContext.dataStore.data.first() }
-        val width = preferences[ACTIVATION_STRIP_WIDTH] ?: 20f
-        val widthPx = (width * resources.displayMetrics.density).toInt()
-        val screenHeight = resources.displayMetrics.heightPixels
-        val params = WindowManager.LayoutParams(
-            widthPx,
-            (screenHeight * 0.3f).toInt(),
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.BOTTOM or Gravity.END
-        }
-
-        windowManager.addView(listenerView, params)
 
         if (preferences[ACTIVATION_STRIP_LEFT_ENABLED] ?: true) {
-            createLeftStripOverlay()
+            leftStripView = createStripOverlay(side = "left")
+        }
+
+        if (preferences[ACTIVATION_STRIP_RIGHT_ENABLED] ?: true) {
+            rightStripView = createStripOverlay(side = "right")
         }
     }
 
-    private fun createLeftStripOverlay() {
-        leftStripView = View(this).apply {
+    private fun createStripOverlay(
+        side: String
+    ) : View {
+        val view = View(this).apply {
             setBackgroundColor(0x00FFFFF)
 
             setOnTouchListener { v, event ->
@@ -157,7 +110,7 @@ class TrackpadOverlayService: Service() {
                     MotionEvent.ACTION_UP -> {
                         val upX = event.rawX
                         val dx = abs(listenerX - upX)
-                        if (dx > (60 * resources.displayMetrics.density) && listenerX < upX) {
+                        if (dx > (60 * resources.displayMetrics.density)) {
                             toggleTouchpadVisibility()
                         }
 
@@ -180,8 +133,16 @@ class TrackpadOverlayService: Service() {
         val defaultY = screenHeight / density - defaultHeightDp
 
         val width = preferences[ACTIVATION_STRIP_WIDTH] ?: defaultWidthDp
-        val height = preferences[ACTIVATION_STRIP_LEFT_HEIGHT] ?: defaultHeightDp
-        val stripY = preferences[ACTIVATION_STRIP_LEFT_TOP] ?: defaultY
+        var height: Float
+        var stripY: Float
+
+        if (side == "left") {
+            height = preferences[ACTIVATION_STRIP_LEFT_HEIGHT] ?: defaultHeightDp
+            stripY = preferences[ACTIVATION_STRIP_LEFT_TOP] ?: defaultY
+        } else {
+            height = preferences[ACTIVATION_STRIP_RIGHT_HEIGHT] ?: defaultHeightDp
+            stripY = preferences[ACTIVATION_STRIP_RIGHT_TOP] ?: defaultY
+        }
 
         val widthPx = (width * density).toInt()
         val heightPx = (height * density).toInt()
@@ -194,11 +155,12 @@ class TrackpadOverlayService: Service() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.TOP or Gravity.START
+            gravity = Gravity.TOP or (if (side == "left") Gravity.START else Gravity.END)
             y = stripYPx
         }
 
-        windowManager.addView(leftStripView, params)
+        windowManager.addView(view, params)
+        return view
     }
 
     private fun toggleTouchpadVisibility() {
@@ -534,8 +496,8 @@ class TrackpadOverlayService: Service() {
     override fun onDestroy() {
         if (::touchpadView.isInitialized) windowManager.removeView(touchpadView)
         if (::cursorView.isInitialized) windowManager.removeView(cursorView)
-        if (::listenerView.isInitialized) windowManager.removeView(listenerView)
         if (::leftStripView.isInitialized) windowManager.removeView(leftStripView)
+        if (::rightStripView.isInitialized) windowManager.removeView(rightStripView)
 
         _isRunning.value = false
         super.onDestroy()

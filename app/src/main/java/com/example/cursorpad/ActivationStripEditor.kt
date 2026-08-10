@@ -174,7 +174,7 @@ fun ActivationStripEditor(
         ) {
 
             LaunchedEffect(preferences) {
-                defaultY = maxHeight - defaultHeight - 24.dp
+                defaultY = maxHeight - defaultHeight
                 stripWidth = preferences[ACTIVATION_STRIP_WIDTH]?.dp ?: defaultWidth
                 val topBarHeight = 64.dp
                 // the amount by which the y value has to be shifted to reflect absolute Y coordinate
