@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "customization_settings")
@@ -22,6 +23,7 @@ val TOUCHPAD_HEIGHT_KEY = floatPreferencesKey(name = "touchpad_height")
 val TOUCHPAD_SENSITIVITY_KEY = floatPreferencesKey(name = "touchpad_sensitivity")
 val TOUCHPAD_COLOR_KEY = intPreferencesKey(name = "touchpad_color")
 val TOUCHPAD_SEPARATE_LAYOUT_KEY = booleanPreferencesKey(name = "touchpad_separate_layout")
+val TOUCHPAD_LAYOUT_SIDE_KEY = stringPreferencesKey(name = "touchpad_layout_side")
 val ACTIVATION_STRIP_WIDTH = floatPreferencesKey(name = "activation_strip_width")
 val ACTIVATION_STRIP_LEFT_ENABLED = booleanPreferencesKey(name = "activation_strip_left_enabled")
 val ACTIVATION_STRIP_LEFT_TOP = floatPreferencesKey(name = "activation_strip_left_top")

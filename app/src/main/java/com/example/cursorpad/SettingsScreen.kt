@@ -34,6 +34,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -113,6 +116,7 @@ fun SettingsScreen(
 
     var showDot = settings[SHOW_DOT_KEY] ?: true
     val separateLayoutEnabled = settings[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true
+    val touchpadLayoutSide = settings[TOUCHPAD_LAYOUT_SIDE_KEY] ?: "left"
     var sensitivity by remember { mutableFloatStateOf(settings[TOUCHPAD_SENSITIVITY_KEY] ?: 1.6f) }
 
     var touchpadColor by remember {
@@ -321,7 +325,20 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                TouchpadPositionCard(onEditClick = { onNavigateToTouchpadPositionEditor() })
+                TouchpadPositionCard(
+                    onEditClick = {
+                        onNavigateToTouchpadPositionEditor()
+                    },
+                    separateLayoutEnabled = separateLayoutEnabled,
+                    selectedSide = touchpadLayoutSide,
+                    updateSelectedSide = { side ->
+                        scope.launch {
+                            dataStore.edit { preferences ->
+                                preferences[TOUCHPAD_LAYOUT_SIDE_KEY] = side
+                            }
+                        }
+                    }
+                )
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Column(
@@ -732,13 +749,16 @@ fun SectionHeading(
 
 @Composable
 fun TouchpadPositionCard(
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    separateLayoutEnabled: Boolean,
+    selectedSide: String,
+    updateSelectedSide: (String) -> Unit
 ) {
     Card {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(start =16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -761,6 +781,7 @@ fun TouchpadPositionCard(
             Spacer(modifier = Modifier.width(16.dp))
 
 
+            val boxAlignment = if (selectedSide == "right") Alignment.BottomEnd else Alignment.BottomStart
             Box(
                 modifier = Modifier
                     .size(width = 32.dp, height = 48.dp)
@@ -773,7 +794,7 @@ fun TouchpadPositionCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(6.dp)
                     ),
-                contentAlignment = Alignment.BottomEnd
+                contentAlignment = boxAlignment
             ) {
                 Box(
                     modifier = Modifier
@@ -782,7 +803,7 @@ fun TouchpadPositionCard(
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(4.dp)
+                            shape = RoundedCornerShape(4.dp),
                         )
                 )
             }
@@ -794,6 +815,32 @@ fun TouchpadPositionCard(
                 contentPadding = PaddingValues(horizontal = 14.dp, 8.dp)
             ) {
                 Text("Edit")
+            }
+        }
+
+        Row(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+        ) {
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.weight(1f, fill = false)
+            ) {
+                SegmentedButton(
+                    selected = selectedSide == "left",
+                    onClick = { updateSelectedSide("left") },
+                    enabled = separateLayoutEnabled,
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                ) {
+                    Text("Left")
+                }
+
+                SegmentedButton(
+                    selected = selectedSide == "right",
+                    onClick = { updateSelectedSide("right") },
+                    enabled = separateLayoutEnabled,
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                ) {
+                    Text("Right")
+                }
             }
         }
     }
