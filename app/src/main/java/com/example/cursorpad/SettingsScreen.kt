@@ -112,6 +112,7 @@ fun SettingsScreen(
     }
 
     var showDot = settings[SHOW_DOT_KEY] ?: true
+    val separateLayoutEnabled = settings[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true
     var sensitivity by remember { mutableFloatStateOf(settings[TOUCHPAD_SENSITIVITY_KEY] ?: 1.6f) }
 
     var touchpadColor by remember {
@@ -295,6 +296,29 @@ fun SettingsScreen(
                 modifier = Modifier.padding(24.dp)
             ) {
                 SectionHeading("Touchpad Settings")
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text("Separate Layout", style = MaterialTheme.typography.bodyLarge)
+                        Text("Use different touchpad for each strip", style = MaterialTheme.typography.bodySmall)
+                    }
+
+                    Switch(
+                        checked = separateLayoutEnabled,
+                        onCheckedChange = { newValue ->
+                            scope.launch {
+                                dataStore.edit { preferences ->
+                                    preferences[TOUCHPAD_SEPARATE_LAYOUT_KEY] = newValue
+                                }
+                            }
+                        }
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(10.dp))
 
                 TouchpadPositionCard(onEditClick = { onNavigateToTouchpadPositionEditor() })
