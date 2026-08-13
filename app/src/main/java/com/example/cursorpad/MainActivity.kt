@@ -67,8 +67,8 @@ class MainActivity : ComponentActivity() {
                     composable ("settings") {
                         SettingsScreen(
                             onBackPressed = { navController.popBackStack() },
-                            onNavigateToTouchpadPositionEditor = {
-                                navController.navigate("touchpad_position_editor")
+                            onNavigateToTouchpadPositionEditor = { side ->
+                                navController.navigate("touchpad_position_editor/$side")
                             },
                             onNavigateToStripEditor = { side ->
                                 navController.navigate("activation_strip_editor/$side")
@@ -76,8 +76,10 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("touchpad_position_editor") {
+                    composable("touchpad_position_editor/{side}") { backStackEntry ->
+                        val side = backStackEntry.arguments?.getString("side") ?: "shared"
                         TouchpadPositionEditor(
+                            side = side,
                             onBackPressed = { navController.popBackStack() }
                         )
                     }

@@ -54,7 +54,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TouchpadPositionEditor(
-    onBackPressed: () -> Unit = {}
+    onBackPressed: () -> Unit = {},
+    side: String = "shared"
 ) {
     val context = LocalContext.current
     val dataStore = context.dataStore
@@ -88,10 +89,22 @@ fun TouchpadPositionEditor(
                                 val yOffset = topBarHeight
                                 val absolutePadY = padY + yOffset
                                 dataStore.edit { preferences ->
-                                    preferences[TOUCHPAD_X_KEY] = padX.value
-                                    preferences[TOUCHPAD_Y_KEY] = absolutePadY.value
-                                    preferences[TOUCHPAD_WIDTH_KEY] = padWidth.value
-                                    preferences[TOUCHPAD_HEIGHT_KEY] = padHeight.value
+                                    if (side == "shared") {
+                                        preferences[TOUCHPAD_X_KEY] = padX.value
+                                        preferences[TOUCHPAD_Y_KEY] = absolutePadY.value
+                                        preferences[TOUCHPAD_WIDTH_KEY] = padWidth.value
+                                        preferences[TOUCHPAD_HEIGHT_KEY] = padHeight.value
+                                    } else if (side == "left") {
+                                        preferences[TOUCHPAD_LEFT_X_KEY] = padX.value
+                                        preferences[TOUCHPAD_LEFT_Y_KEY] = absolutePadY.value
+                                        preferences[TOUCHPAD_LEFT_WIDTH_KEY] = padWidth.value
+                                        preferences[TOUCHPAD_LEFT_HEIGHT_KEY] = padHeight.value
+                                    } else if (side == "right") {
+                                        preferences[TOUCHPAD_RIGHT_X_KEY] = padX.value
+                                        preferences[TOUCHPAD_RIGHT_Y_KEY] = absolutePadY.value
+                                        preferences[TOUCHPAD_RIGHT_WIDTH_KEY] = padWidth.value
+                                        preferences[TOUCHPAD_RIGHT_HEIGHT_KEY] = padHeight.value
+                                    }
                                 }
 
                                 Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
@@ -124,10 +137,22 @@ fun TouchpadPositionEditor(
                 val yOffset = topBarHeight
 
                 // Read saved position values
-                padX = preferences[TOUCHPAD_X_KEY]?.dp ?: defaultX
-                padY = (preferences[TOUCHPAD_Y_KEY]?.dp ?: (defaultY + yOffset)) - yOffset
-                padWidth = preferences[TOUCHPAD_WIDTH_KEY]?.dp ?: defaultWidth
-                padHeight = preferences[TOUCHPAD_HEIGHT_KEY]?.dp ?: defaultHeight
+                if (side == "shared") {
+                    padX = preferences[TOUCHPAD_X_KEY]?.dp ?: defaultX
+                    padY = (preferences[TOUCHPAD_Y_KEY]?.dp ?: (defaultY + yOffset)) - yOffset
+                    padWidth = preferences[TOUCHPAD_WIDTH_KEY]?.dp ?: defaultWidth
+                    padHeight = preferences[TOUCHPAD_HEIGHT_KEY]?.dp ?: defaultHeight
+                } else if (side == "left") {
+                    padX = preferences[TOUCHPAD_LEFT_X_KEY]?.dp ?: 24.dp
+                    padY = (preferences[TOUCHPAD_LEFT_Y_KEY]?.dp ?: (defaultY + yOffset)) - yOffset
+                    padWidth = preferences[TOUCHPAD_LEFT_WIDTH_KEY]?.dp ?: defaultWidth
+                    padHeight = preferences[TOUCHPAD_LEFT_HEIGHT_KEY]?.dp ?: defaultHeight
+                } else if (side == "right") {
+                    padX = preferences[TOUCHPAD_RIGHT_X_KEY]?.dp ?: defaultX
+                    padY = (preferences[TOUCHPAD_RIGHT_Y_KEY]?.dp ?: (defaultY + yOffset)) - yOffset
+                    padWidth = preferences[TOUCHPAD_RIGHT_WIDTH_KEY]?.dp ?: defaultWidth
+                    padHeight = preferences[TOUCHPAD_RIGHT_HEIGHT_KEY]?.dp ?: defaultHeight
+                }
             }
 
             Box(

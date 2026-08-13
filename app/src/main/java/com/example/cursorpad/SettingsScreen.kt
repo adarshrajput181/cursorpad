@@ -91,7 +91,7 @@ val touchpadColorOptions = listOf(
 @Composable
 fun SettingsScreen(
     onBackPressed: () -> Unit = {},
-    onNavigateToTouchpadPositionEditor: () -> Unit = {},
+    onNavigateToTouchpadPositionEditor: (String) -> Unit = {},
     onNavigateToStripEditor: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -326,8 +326,8 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 TouchpadPositionCard(
-                    onEditClick = {
-                        onNavigateToTouchpadPositionEditor()
+                    onEditClick = { side ->
+                        onNavigateToTouchpadPositionEditor(side)
                     },
                     separateLayoutEnabled = separateLayoutEnabled,
                     selectedSide = touchpadLayoutSide,
@@ -749,7 +749,7 @@ fun SectionHeading(
 
 @Composable
 fun TouchpadPositionCard(
-    onEditClick: () -> Unit,
+    onEditClick: (String) -> Unit,
     separateLayoutEnabled: Boolean,
     selectedSide: String,
     updateSelectedSide: (String) -> Unit
@@ -811,7 +811,7 @@ fun TouchpadPositionCard(
             Spacer(modifier = Modifier.width(12.dp))
 
             Button(
-                onClick = onEditClick,
+                onClick = { if (separateLayoutEnabled) onEditClick(selectedSide) else onEditClick("shared") },
                 contentPadding = PaddingValues(horizontal = 14.dp, 8.dp)
             ) {
                 Text("Edit")
