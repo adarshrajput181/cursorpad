@@ -61,6 +61,8 @@ class TrackpadOverlayService: Service() {
     private var longPressTriggered = false
     private val originalCursorColor = Color.GREEN
 
+    private var touchpadActive = false
+
     companion object {
         private var _isRunning = MutableStateFlow(false)
         val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
@@ -177,12 +179,20 @@ class TrackpadOverlayService: Service() {
         if (!::cursorView.isInitialized) return
         if (!touchpadViews.contains(touchpadID)) return
 
-        touchpadViews[touchpadID]?.let { touchpadView ->
-            val newVisibility = if (touchpadView.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-            touchpadView.visibility = newVisibility
-            cursorView.visibility = newVisibility
+        // turn off the visible touchpad (regardless of touchpadID)
+        if (touchpadActive) {
+            touchpadViews.forEach { (_, touchpadView) ->
+                touchpadView.visibility = View.GONE
+            }
+        } else {
+            // otherwise make the touchpad visible based on touchpadID
+            touchpadViews[touchpadID]?.let { touchpadView ->
+                touchpadView.visibility = View.VISIBLE
+            }
         }
 
+        cursorView.visibility = if (touchpadActive) View.GONE else View.VISIBLE
+        touchpadActive = !touchpadActive
         cursorX = (cursorAreaRect.width() - cursorWidth) / 2f
         cursorY = (cursorAreaRect.height() - cursorHeight) / 2f
         updateCursorPosition()
