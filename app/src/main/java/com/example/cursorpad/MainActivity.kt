@@ -5,6 +5,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -55,7 +59,13 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.background)
                 ) {
-                    composable("home") {
+                    composable(
+                        "home",
+                        enterTransition = { fadeIn() },
+                        exitTransition = { fadeOut() },
+                        popEnterTransition = { fadeIn() },
+                        popExitTransition = { fadeOut() }
+                    ) {
                         HomeScreen(
                             stopOverlayService = { stopOverlayService() },
                             onNavigateToSettings = {
@@ -64,7 +74,13 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable ("settings") {
+                    composable(
+                        "settings",
+                        enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                        exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) },
+                        popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
+                        popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) },
+                    ) {
                         SettingsScreen(
                             onBackPressed = { navController.popBackStack() },
                             onNavigateToTouchpadPositionEditor = { side ->
@@ -76,7 +92,13 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("touchpad_position_editor/{side}") { backStackEntry ->
+                    composable(
+                        "touchpad_position_editor/{side}",
+                        enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                        exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) },
+                        popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
+                        popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) },
+                    ) { backStackEntry ->
                         val side = backStackEntry.arguments?.getString("side") ?: "shared"
                         TouchpadPositionEditor(
                             side = side,
@@ -84,7 +106,13 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("activation_strip_editor/{side}") { backStackEntry ->
+                    composable(
+                        "activation_strip_editor/{side}",
+                        enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                        exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) },
+                        popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
+                        popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) },
+                    ) { backStackEntry ->
                         val side = backStackEntry.arguments?.getString("side") ?: "left"
                         ActivationStripEditor(
                             side = side,
@@ -152,7 +180,11 @@ fun PermissionCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(title, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    title,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium
+                )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     subtitle,
