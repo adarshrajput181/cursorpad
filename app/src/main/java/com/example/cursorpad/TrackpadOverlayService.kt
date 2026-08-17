@@ -4,7 +4,10 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Rect
@@ -63,6 +66,16 @@ class TrackpadOverlayService: Service() {
 
     private var touchpadActive = false
 
+    private val rotationReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == Intent.ACTION_CONFIGURATION_CHANGED) {
+                if (touchpadActive) {
+                    toggleTouchpadVisibility("")
+                }
+            }
+        }
+    }
+
     companion object {
         private var _isRunning = MutableStateFlow(false)
         val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
@@ -84,6 +97,10 @@ class TrackpadOverlayService: Service() {
         }
         createCursorOverlay()
         createActivationStripOverlay()
+
+        // register screen rotation listener
+        val filter = IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED)
+        registerReceiver(rotationReceiver, filter)
 
         startService(Intent(this, CursorClickAccessibilityService::class.java))
     }
@@ -177,7 +194,6 @@ class TrackpadOverlayService: Service() {
 
     private fun toggleTouchpadVisibility(touchpadID: String) {
         if (!::cursorView.isInitialized) return
-        if (!touchpadViews.contains(touchpadID)) return
 
         // turn off the visible touchpad (regardless of touchpadID)
         if (touchpadActive) {
@@ -186,6 +202,8 @@ class TrackpadOverlayService: Service() {
             }
         } else {
             // otherwise make the touchpad visible based on touchpadID
+            if (!touchpadViews.contains(touchpadID)) return
+
             touchpadViews[touchpadID]?.let { touchpadView ->
                 touchpadView.visibility = View.VISIBLE
             }
@@ -566,6 +584,7 @@ class TrackpadOverlayService: Service() {
         if (::rightStripView.isInitialized) windowManager.removeView(rightStripView)
 
         _isRunning.value = false
+        unregisterReceiver(rotationReceiver)
         super.onDestroy()
     }
 
