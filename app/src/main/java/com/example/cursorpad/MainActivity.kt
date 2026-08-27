@@ -67,7 +67,6 @@ class MainActivity : ComponentActivity() {
                         popExitTransition = { fadeOut() }
                     ) {
                         HomeScreen(
-                            stopOverlayService = { stopOverlayService() },
                             onNavigateToSettings = {
                                 navController.navigate("settings")
                             }
@@ -119,100 +118,6 @@ class MainActivity : ComponentActivity() {
                             onBackPressed = { navController.popBackStack() }
                         )
                     }
-                }
-            }
-        }
-    }
-
-    private fun stopOverlayService() {
-        val intent = Intent(this, TrackpadOverlayService::class.java)
-        stopService(intent)
-    }
-}
-
-@Composable
-fun ServiceToggleButton(
-    modifier: Modifier = Modifier,
-    onStart: () -> Unit,
-    onStop: () -> Unit
-) {
-    val isServiceRunning by TrackpadOverlayService.overlayEnabled.collectAsState(initial = false)
-
-    FloatingActionButton(
-        modifier = modifier,
-        onClick = {
-            if (isServiceRunning)
-                onStop()
-            else
-                onStart()
-        }
-    ) {
-        Icon(
-            imageVector = if (isServiceRunning) Icons.Default.Close else Icons.Default.PlayArrow,
-            contentDescription = if (isServiceRunning) "Close" else "Play"
-        )
-    }
-}
-
-@Composable
-fun PermissionCard(
-    title: String,
-    subtitle: String,
-    isEnabled: Boolean = false,
-    onClick: () -> Unit,
-) {
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onClick() }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    title,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    subtitle,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (isEnabled) {
-                    Text(
-                        text = "Enabled",
-                        color = Green34,
-                        fontSize = 16.sp
-                    )
-
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        tint = Green34,
-                        contentDescription = null
-                    )
-                } else {
-                    Text(
-                        text = "Disabled",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 16.sp
-                    )
                 }
             }
         }
