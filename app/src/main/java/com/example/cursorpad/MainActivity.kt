@@ -136,7 +136,7 @@ fun ServiceToggleButton(
     onStart: () -> Unit,
     onStop: () -> Unit
 ) {
-    val isServiceRunning by TrackpadOverlayService.isRunning.collectAsState(initial = false)
+    val isServiceRunning by TrackpadOverlayService.overlayEnabled.collectAsState(initial = false)
 
     FloatingActionButton(
         modifier = modifier,

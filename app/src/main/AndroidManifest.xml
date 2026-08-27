@@ -26,14 +26,8 @@
         </activity>
         <service
             android:name=".TrackpadOverlayService"
-            android:enabled="true"
-            android:exported="false"
-            />
-        <service
-            android:name=".CursorClickAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:exported="true"
-            >
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
@@ -42,5 +36,4 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
     </application>
-
 </manifest>

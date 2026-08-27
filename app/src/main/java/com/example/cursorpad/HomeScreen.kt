@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -49,6 +50,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +67,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 enum class PermissionType { OVERLAY, ACCESSIBILITY }
 
@@ -302,9 +305,9 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var isAccessibilityEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
-    var isDrawOverlayEnabled by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
-    val isServiceRunning by TrackpadOverlayService.isRunning.collectAsState(initial = false)
+    val isOverlayEnabled by TrackpadOverlayService.overlayEnabled.collectAsState(initial = false)
 
     val accessibilityLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -312,17 +315,10 @@ fun HomeScreen(
         isAccessibilityEnabled = isAccessibilityServiceEnabled(context)
     }
 
-    val drawOverlayLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { _ ->
-        isDrawOverlayEnabled = Settings.canDrawOverlays(context)
-    }
-
     // Update permission status everytime the app comes into foreground
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            isDrawOverlayEnabled = Settings.canDrawOverlays(context)
             isAccessibilityEnabled = isAccessibilityServiceEnabled(context)
         }
     }
@@ -346,7 +342,7 @@ fun HomeScreen(
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp)
     ) {
-        // Header
+
         Spacer(modifier = Modifier.height(48.dp))
         Text(
             text = "CursorPad",
@@ -393,36 +389,6 @@ fun HomeScreen(
         )
 
         HomeListRow(
-            icon = if (isDrawOverlayEnabled) Icons.Default.CheckCircle else Icons.Default.Warning,
-            iconTint = if (isDrawOverlayEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-            title = "Display over other apps",
-            trailingContent = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = if (isDrawOverlayEnabled) "Enabled" else "Disabled",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (isDrawOverlayEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            onClick = {
-                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
-                drawOverlayLauncher.launch(intent)
-            }
-        )
-
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 4.dp),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-        )
-
-        HomeListRow(
             icon = Icons.AutoMirrored.Filled.Help,
             title = "How it works",
             trailingContent = {
@@ -443,25 +409,21 @@ fun HomeScreen(
             icon = Icons.Default.PlayArrow,
             title = "Overlay",
             subtitle = (
-               if (isAccessibilityEnabled && isDrawOverlayEnabled) {
+               if (isAccessibilityEnabled) {
                    "Click to start the service"
-               } else if (isAccessibilityEnabled) {
-                   "Requires draw over other apps permission"
                } else {
                    "Requires accessibility permission"
                }
             ),
             trailingContent = {
                 Switch(
-                    checked = isServiceRunning,
+                    checked = isOverlayEnabled,
                     onCheckedChange = {
-                        if (it && isAccessibilityEnabled && isDrawOverlayEnabled) {
-                            context.startService(Intent(context, TrackpadOverlayService::class.java))
-                        } else if (!it) {
-                            stopOverlayService()
+                        scope.launch {
+                            TrackpadOverlayService.overlayEnabled.value = it
                         }
                     },
-                    enabled = isAccessibilityEnabled && isDrawOverlayEnabled
+                    enabled = isAccessibilityEnabled
                 )
             }
         )
@@ -499,7 +461,7 @@ private fun HomeListRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 20.dp), // Generous, thumb-friendly touch target
+            .padding(vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(

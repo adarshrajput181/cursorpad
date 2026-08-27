@@ -1,43 +1,49 @@
 package com.example.cursorpad
-import android.accessibilityservice.AccessibilityServiceInfo
+import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.GestureDescription
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
-import android.app.Service
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
+import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
-import android.os.IBinder
-import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
-import android.view.accessibility.AccessibilityManager
+import android.view.accessibility.AccessibilityEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 import kotlin.math.hypot
 
-class TrackpadOverlayService: Service() {
+@SuppressLint("AccessibilityPolicy")
+class TrackpadOverlayService: AccessibilityService() {
     private lateinit var windowManager: WindowManager
     private lateinit var cursorView: View
-    private lateinit var leftStripView: View
-    private lateinit var rightStripView: View
+    private var leftStripView: View? = null
+    private var rightStripView: View? = null
     private var touchpadViews: MutableMap<String, View> = mutableMapOf()
 
     private var cursorX = 0f
@@ -66,6 +72,7 @@ class TrackpadOverlayService: Service() {
 
     private var touchpadActive = false
 
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val rotationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_CONFIGURATION_CHANGED) {
@@ -77,15 +84,22 @@ class TrackpadOverlayService: Service() {
     }
 
     companion object {
-        private var _isRunning = MutableStateFlow(false)
-        val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
+        // State responsible for enabling/disabling overlays
+        val overlayEnabled = MutableStateFlow(false)
     }
 
     override fun onCreate() {
         super.onCreate()
-        _isRunning.value = true
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         touchSlop = ViewConfiguration.get(this).scaledTouchSlop.toFloat()
+
+        // register screen rotation listener
+        val filter = IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED)
+        registerReceiver(rotationReceiver, filter)
+    }
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
 
         computeScreenAreas()
         if (separateTouchpad) {
@@ -98,11 +112,22 @@ class TrackpadOverlayService: Service() {
         createCursorOverlay()
         createActivationStripOverlay()
 
-        // register screen rotation listener
-        val filter = IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED)
-        registerReceiver(rotationReceiver, filter)
+        serviceScope.launch {
+            overlayEnabled.collect { isEnabled ->
+                if (isEnabled) {
+                    leftStripView?.visibility = View.VISIBLE
+                    rightStripView?.visibility = View.VISIBLE
+                } else {
+                    cursorView.visibility = View.GONE
+                    touchpadViews.forEach { (_, touchpadView) ->
+                        touchpadView.visibility = View.GONE
+                    }
 
-        startService(Intent(this, CursorClickAccessibilityService::class.java))
+                    leftStripView?.visibility = View.GONE
+                    rightStripView?.visibility = View.GONE
+                }
+            }
+        }
     }
 
     // Overlay for listening for swipe gesture to toggle touchpad.
@@ -124,6 +149,8 @@ class TrackpadOverlayService: Service() {
     ) : View {
         val view = View(this).apply {
             setBackgroundColor(0x00FFFFF)
+
+            visibility = View.GONE
 
             setOnTouchListener { v, event ->
                 when (event.actionMasked) {
@@ -180,7 +207,7 @@ class TrackpadOverlayService: Service() {
         val params = WindowManager.LayoutParams(
             widthPx,
             heightPx,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
@@ -302,7 +329,7 @@ class TrackpadOverlayService: Service() {
         val params = WindowManager.LayoutParams(
             touchpadRect.width(),
             touchpadRect.height(),
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
@@ -367,59 +394,26 @@ class TrackpadOverlayService: Service() {
     }
 
     private fun performCursorTap() {
-        if (!isAccessibilityServiceEnabled()) {
-            openAccessibilitySettings()
-            return
-        }
-
-        if (!CursorClickAccessibilityService.isServiceEnabled()) {
-            startService(Intent(this, CursorClickAccessibilityService::class.java))
-            return
-        }
-
         val location = IntArray(2)
         cursorView.getLocationOnScreen(location)
         val absoluteX = location[0] + cursorView.width / 2f
         val absoluteY = location[1] + cursorView.height / 2f
-        val success = CursorClickAccessibilityService.performClick(absoluteX, absoluteY)
+        val success = injectClick(absoluteX, absoluteY)
         if (!success) {
             // TODO: Log a toast
         }
     }
 
     private fun performLongPress() {
-        if (!isAccessibilityServiceEnabled()) {
-            openAccessibilitySettings()
-            return
-        }
-
-        if (!CursorClickAccessibilityService.isServiceEnabled()) {
-            startService(Intent(this, CursorClickAccessibilityService::class.java))
-            return
-        }
-
         val location = IntArray(2)
         cursorView.getLocationOnScreen(location)
         val absoluteX = location[0] + cursorView.width / 2f
         val absoluteY = location[1] + cursorView.height / 2f
 
-        val success = CursorClickAccessibilityService.performLongPress(absoluteX, absoluteY)
+        val success = injectLongPress(absoluteX, absoluteY)
         if (!success) {
             // TODO: Log a toast
         }
-    }
-
-    // PERFORMANCE: Checking if service is enabled every time a click is registered
-    private fun isAccessibilityServiceEnabled(): Boolean {
-        val am = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
-        val enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
-        return enabledServices.any { it.resolveInfo?.serviceInfo?.packageName == packageName }
-    }
-
-    private fun openAccessibilitySettings() {
-        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
     }
 
     private fun computeScreenAreas() {
@@ -504,7 +498,7 @@ class TrackpadOverlayService: Service() {
         val params = WindowManager.LayoutParams (
             cursorSizeDP,
             cursorSizeDP,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
@@ -573,21 +567,47 @@ class TrackpadOverlayService: Service() {
         }
     }
 
+    private fun injectClick(x: Float, y: Float): Boolean {
+        val path = Path().apply { moveTo(x, y) }
+        val gesture = GestureDescription.Builder()
+            .addStroke(GestureDescription.StrokeDescription(path, 0, 1))
+            .build()
+
+        return dispatchGesture(gesture, null, null)
+    }
+
+    private fun injectLongPress(x: Float, y: Float): Boolean {
+        val path = Path().apply { moveTo(x, y) }
+        val gesture = GestureDescription.Builder()
+            .addStroke(GestureDescription.StrokeDescription(path, 0,
+                ViewConfiguration.getLongPressTimeout().toLong() + 50
+            ))
+            .build()
+
+        return dispatchGesture(gesture, null, null)
+    }
+
     override fun onDestroy() {
         touchpadViews.values.forEach { view ->
             try {
                 windowManager.removeView(view)
             } catch (_: Exception) { /* ignore */ }
         }
-        if (::cursorView.isInitialized) windowManager.removeView(cursorView)
-        if (::leftStripView.isInitialized) windowManager.removeView(leftStripView)
-        if (::rightStripView.isInitialized) windowManager.removeView(rightStripView)
 
-        _isRunning.value = false
+        if (::cursorView.isInitialized) windowManager.removeView(cursorView)
+        leftStripView?.let { windowManager.removeView(it) }
+        rightStripView?.let { windowManager.removeView(it) }
+
         unregisterReceiver(rotationReceiver)
+        serviceScope.cancel()
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent?): IBinder? = null
+    override fun onInterrupt() {
+        Log.d("TrackpadOverlayService", "Service Interrupted")
+    }
+
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int) = START_STICKY
 }
