@@ -32,11 +32,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
@@ -133,8 +135,15 @@ class TrackpadOverlayService: AccessibilityService() {
             }
         }
 
+        val sharedSettings = applicationContext.dataStore.data
+            .shareIn(
+                scope = serviceScope,
+                started = SharingStarted.Eagerly,
+                replay = 1
+            )
+
         serviceScope.launch {
-            dataStore.data
+            sharedSettings
                 .map { it.toCursorState() }
                 .distinctUntilChanged()
                 .collect { updateCursorView(it) }
@@ -149,7 +158,7 @@ class TrackpadOverlayService: AccessibilityService() {
         val defaultYDp = screenHeight / density - defaultHeightDp - 24f
 
         serviceScope.launch {
-            dataStore.data
+            sharedSettings
                 .map { it.toTouchpadState(defaultLeftX = 24f, defaultRightX = defaultXDp, defaultY = defaultYDp) }
                 .distinctUntilChanged()
                 .collect { state ->
@@ -161,7 +170,7 @@ class TrackpadOverlayService: AccessibilityService() {
 
         val defaultTop = screenHeight / density - defaultHeightDp
         serviceScope.launch {
-            dataStore.data
+            sharedSettings
                 .map { it.toStripState(defaultTop) }
                 .distinctUntilChanged()
                 .collect { state ->
@@ -171,7 +180,7 @@ class TrackpadOverlayService: AccessibilityService() {
         }
 
         serviceScope.launch {
-            dataStore.data
+            sharedSettings
                 .map { it[TOUCHPAD_SENSITIVITY_KEY] ?: 1.5f }
                 .distinctUntilChanged()
                 .collect { newSensitivity ->
