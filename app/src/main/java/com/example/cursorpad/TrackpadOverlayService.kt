@@ -13,6 +13,7 @@ import android.graphics.Color
 import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.view.Gravity
@@ -21,6 +22,8 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalViewConfiguration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,6 +36,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
@@ -52,6 +56,8 @@ class TrackpadOverlayService: AccessibilityService() {
     private var sensitivity = 1.6f
 
     private var separateTouchpad: Boolean = false
+    private var leftTouchpadID: String = "left"
+    private var rightTouchpadID: String = "right"
 
     private var touchpadRects: MutableMap<String, Rect> = mutableMapOf()
     private lateinit var cursorAreaRect: Rect
@@ -71,6 +77,7 @@ class TrackpadOverlayService: AccessibilityService() {
     private val originalCursorColor = Color.GREEN
 
     private var touchpadActive = false
+    private var currentStripState = StripState()
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val rotationReceiver = object : BroadcastReceiver() {
@@ -101,22 +108,19 @@ class TrackpadOverlayService: AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
 
+        // Create all the overlays and make them visible if they are enabled
         computeScreenAreas()
-        if (separateTouchpad) {
-            // PERFORMANCE: Don't create touchpad for inactive strips
-            createTouchpadOverlay(touchpadRects["left"], "left")
-            createTouchpadOverlay(touchpadRects["right"], "right")
-        } else {
-            createTouchpadOverlay(touchpadRects["shared"],"shared")
-        }
+        createTouchpadOverlay(touchpadRects["left"], "left")
+        createTouchpadOverlay(touchpadRects["right"], "right")
+        createTouchpadOverlay(touchpadRects["shared"],"shared")
         createCursorOverlay()
         createActivationStripOverlay()
 
         serviceScope.launch {
             overlayEnabled.collect { isEnabled ->
                 if (isEnabled) {
-                    leftStripView?.visibility = View.VISIBLE
-                    rightStripView?.visibility = View.VISIBLE
+                    leftStripView?.visibility = if (currentStripState.leftStrip.active) View.VISIBLE else View.GONE
+                    rightStripView?.visibility = if (currentStripState.rightStrip.active) View.VISIBLE else View.GONE
                 } else {
                     cursorView.visibility = View.GONE
                     touchpadViews.forEach { (_, touchpadView) ->
@@ -128,24 +132,148 @@ class TrackpadOverlayService: AccessibilityService() {
                 }
             }
         }
+
+        serviceScope.launch {
+            dataStore.data
+                .map { it.toCursorState() }
+                .distinctUntilChanged()
+                .collect { updateCursorView(it) }
+        }
+
+        serviceScope.launch {
+            dataStore.data
+                .map { it.toTouchpadState() }
+                .distinctUntilChanged()
+                .collect { state ->
+                    leftTouchpadID = if (state.separateLayout) "left" else "shared"
+                    rightTouchpadID = if (state.separateLayout) "right" else "shared"
+                    updateTouchpadView(state)
+                }
+        }
+
+        serviceScope.launch {
+            dataStore.data
+                .map { it.toStripState() }
+                .distinctUntilChanged()
+                .collect { state ->
+                    currentStripState = state
+                    updateStripView(state)
+                }
+        }
+
+        serviceScope.launch {
+            dataStore.data
+                .map { it[TOUCHPAD_SENSITIVITY_KEY] ?: 1.5f }
+                .distinctUntilChanged()
+                .collect { newSensitivity ->
+                    sensitivity = newSensitivity
+                }
+        }
+    }
+
+    private fun updateStripView(state: StripState) {
+        updateSingleStripView(leftStripView!!, state.leftStrip)
+        updateSingleStripView(rightStripView!!, state.rightStrip)
+    }
+
+    private fun updateSingleStripView(view: View, config: StripConfig) {
+        view.visibility = if (config.active) View.VISIBLE else View.GONE
+
+        if (!config.active) return
+        val params = view.layoutParams as WindowManager.LayoutParams
+        Log.d("TrackpadOverlayService", "Updated strips with x: ${config.top} and previous x: ${params.x}")
+        val density = resources.displayMetrics.density
+        val width = (config.width * density).toInt()
+        val height = (config.height * density).toInt()
+        val y = (config.top * density).toInt()
+
+        val layoutChanged = params.width != width || params.height != height || params.y != y
+        if (layoutChanged) {
+            params.width = width
+            params.height = height
+            params.y = y
+
+            windowManager.updateViewLayout(view, params)
+        }
+    }
+
+    // Updates the touchpads based on the new settings
+    private fun updateTouchpadView(state: TouchpadState) {
+        if (state.separateLayout) {
+            // Hide shared touchpad
+            touchpadViews["shared"]?.visibility = View.GONE
+
+            updateSingleTouchpadView(touchpadViews["left"]!!, state.leftTouchpad)
+            updateSingleTouchpadView(touchpadViews["right"]!!, state.rightTouchpad)
+        } else {
+            // Hide left & right touchpad
+            touchpadViews["left"]?.visibility = View.GONE
+            touchpadViews["right"]?.visibility = View.GONE
+
+            updateSingleTouchpadView(touchpadViews["shared"]!!, state.sharedTouchpad)
+        }
+    }
+
+    // Update a specific touchpad view
+    private fun updateSingleTouchpadView(view: View, config: TouchpadConfig) {
+        // Skip updates if the touchpad is not active
+        if (!config.active) {
+            view.visibility = View.GONE
+            return
+        }
+
+
+        val params = view.layoutParams as WindowManager.LayoutParams
+        val density = resources.displayMetrics.density
+        Log.d("TrackpadOverlayService", "Updated touchpad with x: ${config.x} and previous x: ${params.x}")
+        val x = (config.x * density).toInt()
+        val y = (config.y * density).toInt()
+        val width = (config.width * density).toInt()
+        val height = (config.height * density).toInt()
+
+        val layoutChanged = params.x != x || params.y != y || params.width != width || params.height != height
+        // Only update layout if you must (expensive)
+        if (layoutChanged) {
+            params.x = x
+            params.y = y
+            params.width = width
+            params.height = height
+
+            windowManager.updateViewLayout(view, params)
+        }
+
+        val drawable = view.background as GradientDrawable
+        drawable.setColor(config.color)
+    }
+
+    // Updates the cursor based on the new settings
+    private fun updateCursorView(state: CursorState) {
+        val density = resources.displayMetrics.density
+        val sizePx = (state.size * density).toInt()
+        val params = cursorView.layoutParams as WindowManager.LayoutParams
+
+        // Layout change (expensive avoid if possible)
+        if (params.width != sizePx || params.height != sizePx) {
+            params.width = sizePx
+            params.height = sizePx
+            windowManager.updateViewLayout(cursorView, params)
+        }
+
+        // Redraw (cheap)
+        val view = cursorView as CursorView
+        view.borderSize = state.borderSize * density
+        view.cursorColor = state.color
+        view.showDot = state.showDot
     }
 
     // Overlay for listening for swipe gesture to toggle touchpad.
     private fun createActivationStripOverlay() {
-        val preferences = runBlocking { applicationContext.dataStore.data.first() }
-
-        if (preferences[ACTIVATION_STRIP_LEFT_ENABLED] ?: true) {
-            leftStripView = createStripOverlay(side = "left", touchpadID = if (separateTouchpad) "left" else "shared")
-        }
-
-        if (preferences[ACTIVATION_STRIP_RIGHT_ENABLED] ?: true) {
-            rightStripView = createStripOverlay(side = "right", touchpadID = if (separateTouchpad) "right" else "shared")
-        }
+        leftStripView = createStripOverlay(side = "left")
+        rightStripView = createStripOverlay(side = "right")
     }
 
     private fun createStripOverlay(
         side: String,
-        touchpadID: String
     ) : View {
         val view = View(this).apply {
             setBackgroundColor(0x00FFFFF)
@@ -167,6 +295,7 @@ class TrackpadOverlayService: AccessibilityService() {
                         val upX = event.rawX
                         val dx = abs(listenerX - upX)
                         if (dx > (60 * resources.displayMetrics.density)) {
+                            val touchpadID = if (side == "left") leftTouchpadID else rightTouchpadID
                             toggleTouchpadVisibility(touchpadID)
                         }
 
@@ -432,46 +561,44 @@ class TrackpadOverlayService: AccessibilityService() {
         val defaultXDp = screenWidth / density - defaultWidthDp - 24f
         val defaultYDp = screenHeight / density - defaultHeightDp - 24f
 
-        if (separateTouchpad) {
-            var padX = preferences[TOUCHPAD_LEFT_X_KEY] ?: 24f
-            var padY = preferences[TOUCHPAD_LEFT_Y_KEY] ?: defaultYDp
-            var padWidth = preferences[TOUCHPAD_LEFT_WIDTH_KEY] ?: defaultWidthDp
-            var padHeight = preferences[TOUCHPAD_LEFT_HEIGHT_KEY] ?: defaultHeightDp
+        var padX = preferences[TOUCHPAD_LEFT_X_KEY] ?: 24f
+        var padY = preferences[TOUCHPAD_LEFT_Y_KEY] ?: defaultYDp
+        var padWidth = preferences[TOUCHPAD_LEFT_WIDTH_KEY] ?: defaultWidthDp
+        var padHeight = preferences[TOUCHPAD_LEFT_HEIGHT_KEY] ?: defaultHeightDp
 
-            var padXPx = (padX * density).toInt()
-            var padYPx = (padY * density).toInt()
-            var padWidthPx = (padWidth * density).toInt()
-            var padHeightPx = (padHeight * density).toInt()
+        var padXPx = (padX * density).toInt()
+        var padYPx = (padY * density).toInt()
+        var padWidthPx = (padWidth * density).toInt()
+        var padHeightPx = (padHeight * density).toInt()
 
-            val leftRect = Rect(padXPx, padYPx, padXPx + padWidthPx, padYPx + padHeightPx)
-            touchpadRects["left"] = leftRect
+        val leftRect = Rect(padXPx, padYPx, padXPx + padWidthPx, padYPx + padHeightPx)
+        touchpadRects["left"] = leftRect
 
-            padX = preferences[TOUCHPAD_RIGHT_X_KEY] ?: defaultXDp
-            padY = preferences[TOUCHPAD_RIGHT_Y_KEY] ?: defaultYDp
-            padWidth = preferences[TOUCHPAD_RIGHT_WIDTH_KEY] ?: defaultWidthDp
-            padHeight = preferences[TOUCHPAD_RIGHT_HEIGHT_KEY] ?: defaultHeightDp
+        padX = preferences[TOUCHPAD_RIGHT_X_KEY] ?: defaultXDp
+        padY = preferences[TOUCHPAD_RIGHT_Y_KEY] ?: defaultYDp
+        padWidth = preferences[TOUCHPAD_RIGHT_WIDTH_KEY] ?: defaultWidthDp
+        padHeight = preferences[TOUCHPAD_RIGHT_HEIGHT_KEY] ?: defaultHeightDp
 
-            padXPx = (padX * density).toInt()
-            padYPx = (padY * density).toInt()
-            padWidthPx = (padWidth * density).toInt()
-            padHeightPx = (padHeight * density).toInt()
+        padXPx = (padX * density).toInt()
+        padYPx = (padY * density).toInt()
+        padWidthPx = (padWidth * density).toInt()
+        padHeightPx = (padHeight * density).toInt()
 
-            val rightRect = Rect(padXPx, padYPx, padXPx + padWidthPx, padYPx + padHeightPx)
-            touchpadRects["right"] = rightRect
-        } else {
-            val padX = preferences[TOUCHPAD_X_KEY] ?: defaultXDp
-            val padY = preferences[TOUCHPAD_Y_KEY] ?: defaultYDp
-            val padWidth = preferences[TOUCHPAD_WIDTH_KEY] ?: defaultWidthDp
-            val padHeight = preferences[TOUCHPAD_HEIGHT_KEY] ?: defaultHeightDp
+        val rightRect = Rect(padXPx, padYPx, padXPx + padWidthPx, padYPx + padHeightPx)
+        touchpadRects["right"] = rightRect
 
-            val padXPx = (padX * density).toInt()
-            val padYPx = (padY * density).toInt()
-            val padWidthPx = (padWidth * density).toInt()
-            val padHeightPx = (padHeight * density).toInt()
+        padX = preferences[TOUCHPAD_X_KEY] ?: defaultXDp
+        padY = preferences[TOUCHPAD_Y_KEY] ?: defaultYDp
+        padWidth = preferences[TOUCHPAD_WIDTH_KEY] ?: defaultWidthDp
+        padHeight = preferences[TOUCHPAD_HEIGHT_KEY] ?: defaultHeightDp
 
-            val touchpadRect = Rect(padXPx, padYPx, padXPx + padWidthPx, padYPx + padHeightPx)
-            touchpadRects["shared"] = touchpadRect
-        }
+        padXPx = (padX * density).toInt()
+        padYPx = (padY * density).toInt()
+        padWidthPx = (padWidth * density).toInt()
+        padHeightPx = (padHeight * density).toInt()
+
+        val touchpadRect = Rect(padXPx, padYPx, padXPx + padWidthPx, padYPx + padHeightPx)
+        touchpadRects["shared"] = touchpadRect
     }
 
     private fun createCursorOverlay() {
