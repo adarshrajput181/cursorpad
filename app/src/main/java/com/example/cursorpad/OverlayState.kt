@@ -46,29 +46,33 @@ fun Preferences.toCursorState(): CursorState {
     )
 }
 
-fun Preferences.toTouchpadState(): TouchpadState {
+fun Preferences.toTouchpadState(
+    defaultLeftX: Float,
+    defaultRightX: Float,
+    defaultY: Float,
+): TouchpadState {
     return TouchpadState(
         separateLayout = this[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true,
         leftTouchpad = TouchpadConfig(
             active = this[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true,
-            x = this[TOUCHPAD_LEFT_X_KEY] ?: 0f,
-            y = this[TOUCHPAD_LEFT_Y_KEY] ?: 0f,
+            x = this[TOUCHPAD_LEFT_X_KEY] ?: defaultLeftX,
+            y = this[TOUCHPAD_LEFT_Y_KEY] ?: defaultY,
             width = this[TOUCHPAD_LEFT_WIDTH_KEY] ?: 140f,
             height = this[TOUCHPAD_LEFT_HEIGHT_KEY] ?: 140f,
             color = this[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt()
         ),
         rightTouchpad = TouchpadConfig(
             active = this[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true,
-            x = this[TOUCHPAD_RIGHT_X_KEY] ?: 0f,
-            y = this[TOUCHPAD_RIGHT_Y_KEY] ?: 0f,
+            x = this[TOUCHPAD_RIGHT_X_KEY] ?: defaultRightX,
+            y = this[TOUCHPAD_RIGHT_Y_KEY] ?: defaultY,
             width = this[TOUCHPAD_RIGHT_WIDTH_KEY] ?: 140f,
             height = this[TOUCHPAD_RIGHT_HEIGHT_KEY] ?: 140f,
             color = this[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt()
         ),
         sharedTouchpad = TouchpadConfig(
             active = !(this[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true),
-            x = this[TOUCHPAD_X_KEY] ?: 0f,
-            y = this[TOUCHPAD_Y_KEY] ?: 0f,
+            x = this[TOUCHPAD_X_KEY] ?: defaultRightX,
+            y = this[TOUCHPAD_Y_KEY] ?: defaultY,
             width = this[TOUCHPAD_WIDTH_KEY] ?: 140f,
             height = this[TOUCHPAD_HEIGHT_KEY] ?: 140f,
             color = this[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt()
@@ -76,18 +80,20 @@ fun Preferences.toTouchpadState(): TouchpadState {
     )
 }
 
-fun Preferences.toStripState(): StripState {
+fun Preferences.toStripState(
+    defaultTop: Float
+): StripState {
     return StripState(
         leftStrip = StripConfig(
             active = this[ACTIVATION_STRIP_LEFT_ENABLED] ?: true,
-            top = this[ACTIVATION_STRIP_LEFT_TOP] ?: 0f,
-            width = this[ACTIVATION_STRIP_WIDTH] ?: 30f,
+            top = this[ACTIVATION_STRIP_LEFT_TOP] ?: defaultTop,
+            width = this[ACTIVATION_STRIP_WIDTH] ?: 20f,
             height = this[ACTIVATION_STRIP_LEFT_HEIGHT] ?: 140f
         ),
         rightStrip = StripConfig(
             active = this[ACTIVATION_STRIP_RIGHT_ENABLED] ?: true,
-            top = this[ACTIVATION_STRIP_RIGHT_TOP] ?: 0f,
-            width = this[ACTIVATION_STRIP_WIDTH] ?: 30f,
+            top = this[ACTIVATION_STRIP_RIGHT_TOP] ?: defaultTop,
+            width = this[ACTIVATION_STRIP_WIDTH] ?: 20f,
             height = this[ACTIVATION_STRIP_RIGHT_HEIGHT] ?: 140f
         )
     )

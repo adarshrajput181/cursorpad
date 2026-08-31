@@ -140,9 +140,17 @@ class TrackpadOverlayService: AccessibilityService() {
                 .collect { updateCursorView(it) }
         }
 
+        val density = resources.displayMetrics.density
+        val screenHeight = resources.displayMetrics.heightPixels
+        val screenWidth = resources.displayMetrics.widthPixels
+        val defaultHeightDp = 140f
+        val defaultWidthDp = 140f
+        val defaultXDp = screenWidth / density - defaultWidthDp - 24f
+        val defaultYDp = screenHeight / density - defaultHeightDp - 24f
+
         serviceScope.launch {
             dataStore.data
-                .map { it.toTouchpadState() }
+                .map { it.toTouchpadState(defaultLeftX = 24f, defaultRightX = defaultXDp, defaultY = defaultYDp) }
                 .distinctUntilChanged()
                 .collect { state ->
                     leftTouchpadID = if (state.separateLayout) "left" else "shared"
@@ -151,9 +159,10 @@ class TrackpadOverlayService: AccessibilityService() {
                 }
         }
 
+        val defaultTop = screenHeight / density - defaultHeightDp
         serviceScope.launch {
             dataStore.data
-                .map { it.toStripState() }
+                .map { it.toStripState(defaultTop) }
                 .distinctUntilChanged()
                 .collect { state ->
                     currentStripState = state
@@ -181,7 +190,6 @@ class TrackpadOverlayService: AccessibilityService() {
 
         if (!config.active) return
         val params = view.layoutParams as WindowManager.LayoutParams
-        Log.d("TrackpadOverlayService", "Updated strips with x: ${config.top} and previous x: ${params.x}")
         val density = resources.displayMetrics.density
         val width = (config.width * density).toInt()
         val height = (config.height * density).toInt()
@@ -225,7 +233,6 @@ class TrackpadOverlayService: AccessibilityService() {
 
         val params = view.layoutParams as WindowManager.LayoutParams
         val density = resources.displayMetrics.density
-        Log.d("TrackpadOverlayService", "Updated touchpad with x: ${config.x} and previous x: ${params.x}")
         val x = (config.x * density).toInt()
         val y = (config.y * density).toInt()
         val width = (config.width * density).toInt()
