@@ -3,16 +3,16 @@ package com.example.cursorpad
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,29 +21,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,14 +51,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -71,7 +70,8 @@ import kotlinx.coroutines.launch
 
 private fun isAccessibilityServiceEnabled(context: Context): Boolean {
     val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-    val enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+    val enabledServices =
+        am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
     return enabledServices.any { it.resolveInfo?.serviceInfo?.packageName == context.packageName }
 }
 
@@ -83,6 +83,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isAccessibilityEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
+    var showGuide by remember { mutableStateOf(false) }
     val isOverlayEnabled by TrackpadOverlayService.overlayEnabled.collectAsState(initial = false)
 
     val accessibilityLauncher = rememberLauncherForActivityResult(
@@ -154,8 +155,7 @@ fun HomeScreen(
                 }
             },
             onClick = {
-                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                accessibilityLauncher.launch(intent)
+                showGuide = true
             }
         )
 
@@ -185,12 +185,12 @@ fun HomeScreen(
             icon = Icons.Default.PlayArrow,
             title = "Overlay",
             subtitle = (
-               if (isAccessibilityEnabled) {
-                   "Click to start the service"
-               } else {
-                   "Requires accessibility permission"
-               }
-            ),
+                    if (isAccessibilityEnabled) {
+                        "Click to start the service"
+                    } else {
+                        "Requires accessibility permission"
+                    }
+                    ),
             trailingContent = {
                 Switch(
                     checked = isOverlayEnabled,
@@ -221,6 +221,18 @@ fun HomeScreen(
             },
             onClick = onNavigateToSettings
         )
+
+        if (showGuide) {
+            AccessibilityGuide(
+                onOpenSettings = {
+                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                    accessibilityLauncher.launch(intent)
+
+                    showGuide = false
+                },
+                onDismiss = { showGuide = false }
+            )
+        }
     }
 }
 
@@ -263,5 +275,141 @@ private fun HomeListRow(
             }
         }
         trailingContent()
+    }
+}
+
+data class GuideStep(
+    val imageRes: Int,
+    val title: String,
+    val description: String
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AccessibilityGuide(
+    onOpenSettings: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val steps = listOf(
+        GuideStep(
+            imageRes = R.drawable.step1_find_app,
+            title = "Step 1: Find CursorPad",
+            description = "You may have to find CursorPad in the downloaded list."
+        ),
+        GuideStep(
+            imageRes = R.drawable.step2_toggle,
+            title = "Step 2: Enable CursorPad",
+            description = "Toggle on 'Use CursorPad'"
+        )
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = { onDismiss() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                "Enable Accessibility",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+            )
+
+            val pagerState = rememberPagerState(pageCount = { steps.size })
+
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxWidth()
+            ) { page ->
+                GuideStepCard(step = steps[page])
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(steps.size) { index ->
+                    val isSelected = index == pagerState.currentPage
+
+                    Box(
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                            .size(if (isSelected) 10.dp else 8.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            )
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                TextButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = { onDismiss() }
+                ) {
+                    Text("Not Now")
+                }
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = { onOpenSettings() }
+                ) {
+                    Text("Open Settings")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun GuideStepCard(
+    step: GuideStep
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surface),
+            ) {
+                Image(
+                    painter = painterResource(id = step.imageRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                step.title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                step.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
