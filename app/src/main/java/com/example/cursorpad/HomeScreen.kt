@@ -223,14 +223,9 @@ fun HomeScreen(
         )
 
         if (showGuide) {
-            AccessibilityGuide(
-                onOpenSettings = {
-                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                    accessibilityLauncher.launch(intent)
-
-                    showGuide = false
-                },
-                onDismiss = { showGuide = false }
+            AccessibilityGuideDialog(
+                onDismiss = { showGuide = false },
+                isAccessibilityServiceEnabled = { isAccessibilityServiceEnabled(context) }
             )
         }
     }
@@ -275,141 +270,5 @@ private fun HomeListRow(
             }
         }
         trailingContent()
-    }
-}
-
-data class GuideStep(
-    val imageRes: Int,
-    val title: String,
-    val description: String
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AccessibilityGuide(
-    onOpenSettings: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val steps = listOf(
-        GuideStep(
-            imageRes = R.drawable.step1_find_app,
-            title = "Step 1: Find CursorPad",
-            description = "You may have to find CursorPad in the downloaded list."
-        ),
-        GuideStep(
-            imageRes = R.drawable.step2_toggle,
-            title = "Step 2: Enable CursorPad",
-            description = "Toggle on 'Use CursorPad'"
-        )
-    )
-
-    ModalBottomSheet(
-        onDismissRequest = { onDismiss() }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp)
-        ) {
-            Text(
-                "Enable Accessibility",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-            )
-
-            val pagerState = rememberPagerState(pageCount = { steps.size })
-
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxWidth()
-            ) { page ->
-                GuideStepCard(step = steps[page])
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                repeat(steps.size) { index ->
-                    val isSelected = index == pagerState.currentPage
-
-                    Box(
-                        modifier = Modifier.padding(horizontal = 4.dp)
-                            .size(if (isSelected) 10.dp else 8.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                            )
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                TextButton(
-                    modifier = Modifier.weight(1f),
-                    onClick = { onDismiss() }
-                ) {
-                    Text("Not Now")
-                }
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = { onOpenSettings() }
-                ) {
-                    Text("Open Settings")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun GuideStepCard(
-    step: GuideStep
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(24.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surface),
-            ) {
-                Image(
-                    painter = painterResource(id = step.imageRes),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillWidth,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                step.title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                step.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-        }
     }
 }
