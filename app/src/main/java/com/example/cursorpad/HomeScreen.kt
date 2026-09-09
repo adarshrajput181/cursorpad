@@ -78,7 +78,8 @@ private fun isAccessibilityServiceEnabled(context: Context): Boolean {
 @Preview
 @Composable
 fun HomeScreen(
-    onNavigateToSettings: () -> Unit = {}
+    onNavigateToSettings: () -> Unit = {},
+    onNavigateToTutorial: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -173,7 +174,8 @@ fun HomeScreen(
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
+            },
+            onClick = { onNavigateToTutorial() }
         )
 
         HorizontalDivider(

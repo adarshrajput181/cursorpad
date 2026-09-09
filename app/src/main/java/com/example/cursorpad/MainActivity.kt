@@ -42,6 +42,9 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             onNavigateToSettings = {
                                 navController.navigate("settings")
+                            },
+                            onNavigateToTutorial = {
+                                navController.navigate("tutorial")
                             }
                         )
                     }
@@ -88,6 +91,18 @@ class MainActivity : ComponentActivity() {
                         val side = backStackEntry.arguments?.getString("side") ?: "left"
                         ActivationStripEditor(
                             side = side,
+                            onBackPressed = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        "tutorial",
+                        enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                        exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) },
+                        popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
+                        popExitTransition = { slideOutHorizontally( targetOffsetX = { it }) }
+                    ) {
+                        Tutorial(
                             onBackPressed = { navController.popBackStack() }
                         )
                     }
