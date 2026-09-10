@@ -23,10 +23,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,6 +42,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +50,17 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 fun Tutorial(
     onBackPressed: () -> Unit = {}
 ) {
+    var isRightSwipe by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1566)
+            isRightSwipe = !isRightSwipe
+        }
+    }
+
+    val translationX = if (isRightSwipe) 30f else -30f
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -108,11 +125,21 @@ fun Tutorial(
                             MaterialTheme.colorScheme.onSurface.copy(0.25f)
                         )
                 )
-                Box(modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(100.dp)
-                    .offset(x = 23.dp)) {
-                    SwipeGestureAnimation(R.raw.swipe_left)
+
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .offset(y = 50.dp)
+                        .align(Alignment.Center)
+                        .graphicsLayer {
+                            this.translationX = translationX.dp.toPx()
+                        }
+                ) {
+                    if (isRightSwipe) {
+                        SwipeGestureAnimation(R.raw.swipe_left)
+                    } else {
+                        SwipeGestureAnimation(R.raw.swipe_left, modifier = Modifier.graphicsLayer { scaleX = -1f } )
+                    }
                 }
 
             }
@@ -162,11 +189,12 @@ fun Tutorial(
 }
 
 @Composable
-fun SwipeGestureAnimation(resourceId: Int) {
+fun SwipeGestureAnimation(resourceId: Int, modifier: Modifier = Modifier) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(resourceId))
     val progress by animateLottieCompositionAsState(composition = composition, iterations = LottieConstants.IterateForever)
     LottieAnimation(
         composition = composition,
         progress = { progress },
+        modifier = modifier
     )
 }
