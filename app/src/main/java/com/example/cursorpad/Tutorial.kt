@@ -1,5 +1,7 @@
 package com.example.cursorpad
 
+import android.content.res.Configuration
+import androidx.collection.mutableFloatSetOf
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -25,6 +27,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,17 +39,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.lerp
 import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieClipSpec
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.cursorpad.ui.theme.CursorPadTheme
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
 fun Tutorial(
     onBackPressed: () -> Unit = {}
 ) {
@@ -138,7 +144,9 @@ fun Tutorial(
                     if (isRightSwipe) {
                         SwipeGestureAnimation(R.raw.swipe_left)
                     } else {
-                        SwipeGestureAnimation(R.raw.swipe_left, modifier = Modifier.graphicsLayer { scaleX = -1f } )
+                        SwipeGestureAnimation(
+                            R.raw.swipe_left,
+                            modifier = Modifier.graphicsLayer { scaleX = -1f })
                     }
                 }
 
@@ -173,7 +181,27 @@ fun Tutorial(
                     .background(MaterialTheme.colorScheme.background)
                     .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                     .align(Alignment.CenterHorizontally)
-            )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(end = 10.dp, bottom = 10.dp)
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
+                        .align(Alignment.BottomEnd)
+                ) {
+                    DragGestureAnimation(R.raw.swipe_left_down)
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .offset(x = 20.dp, y = 50.dp)
+                ) {
+                    DragGestureAnimation(R.raw.cursor_left_down)
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -191,10 +219,35 @@ fun Tutorial(
 @Composable
 fun SwipeGestureAnimation(resourceId: Int, modifier: Modifier = Modifier) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(resourceId))
-    val progress by animateLottieCompositionAsState(composition = composition, iterations = LottieConstants.IterateForever)
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever
+    )
     LottieAnimation(
         composition = composition,
         progress = { progress },
         modifier = modifier
     )
+}
+
+@Composable
+fun DragGestureAnimation(resourceId: Int) {
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(resourceId))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever,
+    )
+
+    LottieAnimation(
+        composition = composition,
+        progress = { progress },
+    )
+}
+
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun TutorialPreview() {
+    CursorPadTheme() {
+        Tutorial()
+    }
 }
