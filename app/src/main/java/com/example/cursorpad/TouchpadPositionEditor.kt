@@ -129,8 +129,8 @@ fun TouchpadPositionEditor(
             }
 
             LaunchedEffect(preferences, maxWidth, maxHeight) {
-                val defaultWidth = 140.dp
-                val defaultHeight = 140.dp
+                val defaultWidth = 200.dp
+                val defaultHeight = 200.dp
                 val defaultX = maxWidth - defaultWidth - 24.dp
                 val defaultY = maxHeight - defaultHeight - 24.dp
                 val topBarHeight = 64.dp // default value in M3

@@ -64,7 +64,7 @@ fun ActivationStripEditor(
     val preferences by dataStore.data.collectAsState(initial = preferencesOf())
 
     val defaultWidth = 20.dp
-    val defaultHeight = 140.dp
+    val defaultHeight = 240.dp
     val defaultX = 0.dp
     var defaultY = 0.dp
 

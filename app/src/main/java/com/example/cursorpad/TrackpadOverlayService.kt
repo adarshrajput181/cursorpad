@@ -152,8 +152,8 @@ class TrackpadOverlayService: AccessibilityService() {
         val density = resources.displayMetrics.density
         val screenHeight = resources.displayMetrics.heightPixels
         val screenWidth = resources.displayMetrics.widthPixels
-        val defaultHeightDp = 140f
-        val defaultWidthDp = 140f
+        val defaultHeightDp = 200f
+        val defaultWidthDp = 200f
         val defaultXDp = screenWidth / density - defaultWidthDp - 24f
         val defaultYDp = screenHeight / density - defaultHeightDp - 24f
 
@@ -330,7 +330,7 @@ class TrackpadOverlayService: AccessibilityService() {
         val preferences = runBlocking { applicationContext.dataStore.data.first() }
 
         val defaultWidthDp = 20f
-        val defaultHeightDp = 140f
+        val defaultHeightDp = 240f
         val defaultY = screenHeight / density - defaultHeightDp
 
         val width = preferences[ACTIVATION_STRIP_WIDTH] ?: defaultWidthDp
@@ -572,8 +572,8 @@ class TrackpadOverlayService: AccessibilityService() {
         val preferences = runBlocking { applicationContext.dataStore.data.first() }
         separateTouchpad = preferences[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true
 
-        val defaultWidthDp = 140f
-        val defaultHeightDp = 140f
+        val defaultWidthDp = 200f
+        val defaultHeightDp = 200f
         val defaultXDp = screenWidth / density - defaultWidthDp - 24f
         val defaultYDp = screenHeight / density - defaultHeightDp - 24f
 

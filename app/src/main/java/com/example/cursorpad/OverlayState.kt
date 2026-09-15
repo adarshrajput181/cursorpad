@@ -57,24 +57,24 @@ fun Preferences.toTouchpadState(
             active = this[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true,
             x = this[TOUCHPAD_LEFT_X_KEY] ?: defaultLeftX,
             y = this[TOUCHPAD_LEFT_Y_KEY] ?: defaultY,
-            width = this[TOUCHPAD_LEFT_WIDTH_KEY] ?: 140f,
-            height = this[TOUCHPAD_LEFT_HEIGHT_KEY] ?: 140f,
+            width = this[TOUCHPAD_LEFT_WIDTH_KEY] ?: 200f,
+            height = this[TOUCHPAD_LEFT_HEIGHT_KEY] ?: 200f,
             color = this[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt()
         ),
         rightTouchpad = TouchpadConfig(
             active = this[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true,
             x = this[TOUCHPAD_RIGHT_X_KEY] ?: defaultRightX,
             y = this[TOUCHPAD_RIGHT_Y_KEY] ?: defaultY,
-            width = this[TOUCHPAD_RIGHT_WIDTH_KEY] ?: 140f,
-            height = this[TOUCHPAD_RIGHT_HEIGHT_KEY] ?: 140f,
+            width = this[TOUCHPAD_RIGHT_WIDTH_KEY] ?: 200f,
+            height = this[TOUCHPAD_RIGHT_HEIGHT_KEY] ?: 200f,
             color = this[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt()
         ),
         sharedTouchpad = TouchpadConfig(
             active = !(this[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true),
             x = this[TOUCHPAD_X_KEY] ?: defaultRightX,
             y = this[TOUCHPAD_Y_KEY] ?: defaultY,
-            width = this[TOUCHPAD_WIDTH_KEY] ?: 140f,
-            height = this[TOUCHPAD_HEIGHT_KEY] ?: 140f,
+            width = this[TOUCHPAD_WIDTH_KEY] ?: 200f,
+            height = this[TOUCHPAD_HEIGHT_KEY] ?: 200f,
             color = this[TOUCHPAD_COLOR_KEY] ?: 0xAA333333.toInt()
         )
     )
@@ -88,13 +88,13 @@ fun Preferences.toStripState(
             active = this[ACTIVATION_STRIP_LEFT_ENABLED] ?: true,
             top = this[ACTIVATION_STRIP_LEFT_TOP] ?: defaultTop,
             width = this[ACTIVATION_STRIP_WIDTH] ?: 20f,
-            height = this[ACTIVATION_STRIP_LEFT_HEIGHT] ?: 140f
+            height = this[ACTIVATION_STRIP_LEFT_HEIGHT] ?: 240f
         ),
         rightStrip = StripConfig(
             active = this[ACTIVATION_STRIP_RIGHT_ENABLED] ?: true,
             top = this[ACTIVATION_STRIP_RIGHT_TOP] ?: defaultTop,
             width = this[ACTIVATION_STRIP_WIDTH] ?: 20f,
-            height = this[ACTIVATION_STRIP_RIGHT_HEIGHT] ?: 140f
+            height = this[ACTIVATION_STRIP_RIGHT_HEIGHT] ?: 240f
         )
     )
 }
