@@ -92,14 +92,14 @@ fun AccessibilityGuideDialog(
                 // Only advance if the user is on a step that sends them away
                 if (pagerState.currentPage in listOf(0, 1, 3)) {
                     scope.launch {
+                        if (isAccessibilityServiceEnabled()) {
+                            onDismiss()
+                        }
+
                         if (pagerState.currentPage < steps.size - 1) {
                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
                         } else {
-                            if (isAccessibilityServiceEnabled()) {
-                                onDismiss()
-                            } else {
-                                showPermissionError = true
-                            }
+                            showPermissionError = true
                         }
                     }
 
