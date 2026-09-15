@@ -195,8 +195,6 @@ class TrackpadOverlayService: AccessibilityService() {
     }
 
     private fun updateSingleStripView(view: View, config: StripConfig) {
-        view.visibility = if (config.active) View.VISIBLE else View.GONE
-
         if (!config.active) return
         val params = view.layoutParams as WindowManager.LayoutParams
         val density = resources.displayMetrics.density
