@@ -564,8 +564,7 @@ class TrackpadOverlayService: AccessibilityService() {
         val screenHeight = displayMetrics.heightPixels
         val screenWidth = displayMetrics.widthPixels
         val density = displayMetrics.density
-        val cursorAreaHeight = (screenHeight * 0.70f).toInt()
-        cursorAreaRect = Rect(0, 0,screenWidth, cursorAreaHeight)
+        cursorAreaRect = Rect(0, 0,screenWidth, screenHeight)
 
         val preferences = runBlocking { applicationContext.dataStore.data.first() }
         separateTouchpad = preferences[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true
