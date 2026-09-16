@@ -94,25 +94,25 @@ fun Tutorial(
         },
     ) { innerPadding ->
         Column(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(innerPadding)
                 .padding(vertical = 24.dp, horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.Companion.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
             Text(
                 "Toggling the Touchpad",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Companion.Bold,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Companion.Center
+                textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.Companion.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .size(116.dp, 216.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.background)
@@ -121,19 +121,19 @@ fun Tutorial(
                         MaterialTheme.colorScheme.outline,
                         androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
                     )
-                    .align(Alignment.Companion.CenterHorizontally)
+                    .align(Alignment.CenterHorizontally)
             ) {
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.BottomStart)
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
                         .size(20.dp, 100.dp)
                         .background(
                             MaterialTheme.colorScheme.onSurface.copy(0.25f)
                         )
                 )
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.BottomEnd)
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
                         .size(20.dp, 100.dp)
                         .background(
                             MaterialTheme.colorScheme.onSurface.copy(0.25f)
@@ -141,10 +141,10 @@ fun Tutorial(
                 )
 
                 Box(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .size(100.dp)
                         .offset(y = 50.dp)
-                        .align(Alignment.Companion.Center)
+                        .align(Alignment.Center)
                         .graphicsLayer {
                             this.translationX = translationX.dp.toPx()
                         }
@@ -154,33 +154,33 @@ fun Tutorial(
                     } else {
                         SwipeGestureAnimation(
                             R.raw.swipe_left,
-                            modifier = Modifier.Companion.graphicsLayer { scaleX = -1f })
+                            modifier = Modifier.graphicsLayer { scaleX = -1f })
                     }
                 }
 
             }
 
-            Spacer(modifier = Modifier.Companion.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 "To summon the touchpad and the cursor, swipe inwards from the sides, where the strips are located. To remove the touchpad, repeat the same gesture while the touchpad is enabled.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Companion.Center,
+                textAlign = TextAlign.Center,
                 lineHeight = 24.sp
             )
 
-            Spacer(modifier = Modifier.Companion.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Text(
                 "Control the Cursor",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Companion.Bold,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Companion.Center
+                textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.Companion.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             val sharedProgress = remember { Animatable(0f) }
 
@@ -192,7 +192,7 @@ fun Tutorial(
             }
 
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .size(116.dp, 216.dp)
                     .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.background)
@@ -201,10 +201,10 @@ fun Tutorial(
                         MaterialTheme.colorScheme.outline,
                         androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
                     )
-                    .align(Alignment.Companion.CenterHorizontally)
+                    .align(Alignment.CenterHorizontally)
             ) {
                 Box(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .padding(end = 10.dp, bottom = 10.dp)
                         .size(60.dp)
                         .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
@@ -214,13 +214,13 @@ fun Tutorial(
                             MaterialTheme.colorScheme.outline,
                             androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
                         )
-                        .align(Alignment.Companion.BottomEnd)
+                        .align(Alignment.BottomEnd)
                 ) {
                     DragGestureAnimation(R.raw.swipe_left_down, sharedProgress.value)
                 }
 
                 Box(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .size(60.dp)
                         .offset(x = 20.dp, y = 50.dp)
                 ) {
@@ -228,17 +228,17 @@ fun Tutorial(
                 }
             }
 
-            Spacer(modifier = Modifier.Companion.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 "You can use the touchpad to move the cursor, dragging on the touchpad will move it accordingly. ",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 24.sp,
-                textAlign = TextAlign.Companion.Center
+                textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.Companion.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             val scaleProgress = remember { Animatable(1f) }
             val rippleProgress = remember { Animatable(0f) }
@@ -285,7 +285,7 @@ fun Tutorial(
             }
 
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .size(116.dp, 216.dp)
                     .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.background)
@@ -294,23 +294,23 @@ fun Tutorial(
                         MaterialTheme.colorScheme.outline,
                         androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
                     )
-                    .align(Alignment.Companion.CenterHorizontally)
+                    .align(Alignment.CenterHorizontally)
             ) {
                 // Button
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.Center)
+                    modifier = Modifier
+                        .align(Alignment.Center)
                         .size(60.dp, 30.dp)
                         .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Companion.Center
+                    contentAlignment = Alignment.Center
                 ) {
                     Text("Click Me!", style = MaterialTheme.typography.bodySmall)
 
                     // Ripple
                     Box(
-                        modifier = Modifier.Companion
-                            .align(Alignment.Companion.Center)
+                        modifier = Modifier
+                            .align(Alignment.Center)
                             .size(140.dp)
                             .graphicsLayer {
                                 val s = rippleProgress.value
@@ -319,13 +319,13 @@ fun Tutorial(
                                 alpha = 0.35f * (1f - abs(s - 0.4f) / 0.6f).coerceIn(0f, 1f)
                             }
                             .clip(CircleShape)
-                            .background(Color.Companion.White)
+                            .background(Color.White)
                     )
                 }
 
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.Center)
+                    modifier = Modifier
+                        .align(Alignment.Center)
                         .size(12.dp)
                         .graphicsLayer {
                             scaleX = scaleProgress.value; scaleY = scaleProgress.value
@@ -335,7 +335,7 @@ fun Tutorial(
                 )
 
                 Box(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .padding(end = 10.dp, bottom = 10.dp)
                         .size(60.dp)
                         .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
@@ -345,29 +345,29 @@ fun Tutorial(
                             MaterialTheme.colorScheme.outline,
                             androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
                         )
-                        .align(Alignment.Companion.BottomEnd)
+                        .align(Alignment.BottomEnd)
                 ) {
-                    Box(modifier = Modifier.Companion.size(60.dp)) {
+                    Box(modifier = Modifier.size(60.dp)) {
                         TapGestureAnimation(R.raw.swipe_left, progress = tapProgress.value)
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.Companion.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 "To tap the element under the cursor, tap on the touchpad. For long press, hold on the touchpad.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 24.sp,
-                textAlign = TextAlign.Companion.Center
+                textAlign = TextAlign.Center
             )
         }
     }
 }
 
 @Composable
-fun SwipeGestureAnimation(resourceId: Int, modifier: Modifier = Modifier.Companion) {
+fun SwipeGestureAnimation(resourceId: Int, modifier: Modifier = Modifier) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(resourceId))
     val progress by animateLottieCompositionAsState(
         composition = composition,
@@ -397,7 +397,7 @@ fun TapGestureAnimation(resourceId: Int, progress: Float) {
     LottieAnimation(
         composition = composition,
         progress = { progress },
-        modifier = Modifier.Companion.graphicsLayer { scaleX = 1.3f; scaleY = 1.3f }
+        modifier = Modifier.graphicsLayer { scaleX = 1.3f; scaleY = 1.3f }
     )
 }
 

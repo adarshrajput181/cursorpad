@@ -73,7 +73,7 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     var isAccessibilityEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
     var showGuide by remember { mutableStateOf(false) }
-    val isOverlayEnabled by TrackpadOverlayService.Companion.overlayEnabled.collectAsState(initial = false)
+    val isOverlayEnabled by TrackpadOverlayService.overlayEnabled.collectAsState(initial = false)
 
     val accessibilityLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -103,39 +103,39 @@ fun HomeScreen(
     }
 
     Column(
-        modifier = Modifier.Companion
+        modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp)
     ) {
 
-        Spacer(modifier = Modifier.Companion.height(48.dp))
+        Spacer(modifier = Modifier.height(48.dp))
         Text(
             text = "CursorPad",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
-        Spacer(modifier = Modifier.Companion.height(4.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "Better reach for one-handed grips.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
         )
 
-        Spacer(modifier = Modifier.Companion.height(32.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         HomeListRow(
             icon = if (isAccessibilityEnabled) Icons.Default.CheckCircle else Icons.Default.Warning,
             iconTint = if (isAccessibilityEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
             title = "Accessibility",
             trailingContent = {
-                Row(verticalAlignment = Alignment.Companion.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = if (isAccessibilityEnabled) "Enabled" else "Disabled",
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (isAccessibilityEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                     )
-                    Spacer(modifier = Modifier.Companion.width(4.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = null,
@@ -149,7 +149,7 @@ fun HomeScreen(
         )
 
         HorizontalDivider(
-            modifier = Modifier.Companion.padding(vertical = 4.dp),
+            modifier = Modifier.padding(vertical = 4.dp),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
         )
 
@@ -167,7 +167,7 @@ fun HomeScreen(
         )
 
         HorizontalDivider(
-            modifier = Modifier.Companion.padding(vertical = 4.dp),
+            modifier = Modifier.padding(vertical = 4.dp),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
         )
 
@@ -186,7 +186,7 @@ fun HomeScreen(
                     checked = isOverlayEnabled,
                     onCheckedChange = {
                         scope.launch {
-                            TrackpadOverlayService.Companion.overlayEnabled.value = it
+                            TrackpadOverlayService.overlayEnabled.value = it
                         }
                     },
                     enabled = isAccessibilityEnabled
@@ -195,7 +195,7 @@ fun HomeScreen(
         )
 
         HorizontalDivider(
-            modifier = Modifier.Companion.padding(vertical = 4.dp),
+            modifier = Modifier.padding(vertical = 4.dp),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
         )
 
@@ -231,20 +231,20 @@ private fun HomeListRow(
     onClick: () -> Unit = {}
 ) {
     Row(
-        modifier = Modifier.Companion
+        modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(vertical = 20.dp),
-        verticalAlignment = Alignment.Companion.CenterVertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = iconTint,
-            modifier = Modifier.Companion.size(24.dp)
+            modifier = Modifier.size(24.dp)
         )
-        Spacer(modifier = Modifier.Companion.width(16.dp))
-        Column(modifier = Modifier.Companion.weight(1f)) {
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,

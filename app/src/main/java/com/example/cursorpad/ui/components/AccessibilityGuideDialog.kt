@@ -135,36 +135,36 @@ fun AccessibilityGuideDialog(
             color = MaterialTheme.colorScheme.background
         ) {
             Column(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .padding(24.dp),
-                horizontalAlignment = Alignment.Companion.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Header
                 Text(
                     text = "Enable Accessibility",
                     style = MaterialTheme.typography.headlineSmall
                 )
-                Spacer(Modifier.Companion.height(8.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
                     text = "Page ${pagerState.currentPage + 1} of ${steps.size}",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.Companion.height(16.dp))
+                Spacer(Modifier.height(16.dp))
 
                 HorizontalPager(
                     state = pagerState,
                 ) { page ->
                     val step = steps[page]
                     Card(
-                        modifier = Modifier.Companion.defaultMinSize(minHeight = 400.dp)
+                        modifier = Modifier.defaultMinSize(minHeight = 400.dp)
                     ) {
                         Column(
-                            modifier = Modifier.Companion.padding(16.dp),
-                            horizontalAlignment = Alignment.Companion.CenterHorizontally
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Box(
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .height(220.dp)
                                     .clip(RoundedCornerShape(16.dp))
                                     .background(MaterialTheme.colorScheme.surface),
@@ -172,21 +172,21 @@ fun AccessibilityGuideDialog(
                                 Image(
                                     painter = painterResource(step.imageID),
                                     contentDescription = null,
-                                    contentScale = ContentScale.Companion.FillWidth,
-                                    modifier = Modifier.Companion.fillMaxSize()
+                                    contentScale = ContentScale.FillWidth,
+                                    modifier = Modifier.fillMaxSize()
                                 )
                             }
-                            Spacer(Modifier.Companion.height(16.dp))
+                            Spacer(Modifier.height(16.dp))
                             Text(
                                 text = step.title,
                                 style = MaterialTheme.typography.titleLarge,
-                                textAlign = TextAlign.Companion.Center
+                                textAlign = TextAlign.Center
                             )
-                            Spacer(Modifier.Companion.height(8.dp))
+                            Spacer(Modifier.height(8.dp))
                             Text(
                                 text = step.description,
                                 style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Companion.Center,
+                                textAlign = TextAlign.Center,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -196,8 +196,8 @@ fun AccessibilityGuideDialog(
                                 text = "You haven't enabled CursorPad yet. Please toggle it ON and come back.",
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Companion.Center,
-                                modifier = Modifier.Companion.padding(
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(
                                     horizontal = 16.dp,
                                     vertical = 8.dp
                                 )
@@ -206,7 +206,7 @@ fun AccessibilityGuideDialog(
                     }
                 }
 
-                Spacer(Modifier.Companion.height(100.dp))
+                Spacer(Modifier.height(100.dp))
 
                 val currentStep = steps[pagerState.currentPage]
                 if (currentStep.buttonText != null) {
@@ -214,7 +214,7 @@ fun AccessibilityGuideDialog(
                         onClick = {
                             launchAction(currentStep)
                         },
-                        modifier = Modifier.Companion.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(currentStep.buttonText)
                     }
@@ -223,17 +223,17 @@ fun AccessibilityGuideDialog(
                         onClick = {
                             scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                         },
-                        modifier = Modifier.Companion.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Next")
                     }
                 }
 
-                Spacer(Modifier.Companion.height(8.dp))
+                Spacer(Modifier.height(8.dp))
 
                 TextButton(
                     onClick = { onDismiss() },
-                    modifier = Modifier.Companion.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Not now")
                 }

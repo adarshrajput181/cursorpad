@@ -76,7 +76,7 @@ fun ActivationStripEditor(
     var stripHeight by remember { mutableStateOf(defaultHeight) }
 
     Scaffold(
-        modifier = Modifier.Companion.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { Text("Edit Activation Position") },
@@ -111,7 +111,7 @@ fun ActivationStripEditor(
                             }
                         }
                     ) {
-                        Text("Save", fontWeight = FontWeight.Companion.Bold)
+                        Text("Save", fontWeight = FontWeight.Bold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -121,7 +121,7 @@ fun ActivationStripEditor(
         }
     ) { innerPadding ->
         BoxWithConstraints(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .pointerInput(Unit) {
@@ -195,7 +195,7 @@ fun ActivationStripEditor(
             }
 
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .offset(x = stripX, y = stripY)
                     .size(width = stripWidth, height = stripHeight)
                     .background(color = MaterialTheme.colorScheme.secondary)
@@ -204,45 +204,45 @@ fun ActivationStripEditor(
 
             // Top Handle
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .offset(y = stripY - 1.dp)
                     .size(width = maxWidth, height = 2.dp)
-                    .background(Color.Companion.White)
+                    .background(Color.White)
             )
 
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .offset(y = stripY - 5.dp)
                     .size(width = maxWidth, height = 5.dp)
             ) {
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.BottomCenter)
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
                         .size(width = 60.dp, height = 6.dp)
                         .clip(CircleShape)
-                        .background(Color.Companion.White)
+                        .background(Color.White)
                 )
             }
 
             // Bottom Handle
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .offset(y = stripY + stripHeight)
                     .size(width = maxWidth, height = 2.dp)
-                    .background(Color.Companion.White)
+                    .background(Color.White)
             )
 
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .offset(y = stripY + stripHeight)
                     .size(width = maxWidth, height = 6.dp)
             ) {
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.TopCenter)
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
                         .size(width = 60.dp, height = 6.dp)
                         .clip(CircleShape)
-                        .background(Color.Companion.White)
+                        .background(Color.White)
                 )
             }
         }

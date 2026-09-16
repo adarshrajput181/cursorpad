@@ -78,7 +78,7 @@ fun TouchpadPositionEditor(
     var padHeight by remember { mutableStateOf(0.dp) }
 
     Scaffold(
-        modifier = Modifier.Companion.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { Text("Edit Touchpad Position") },
@@ -120,7 +120,7 @@ fun TouchpadPositionEditor(
                             }
                         }
                     ) {
-                        Text("Save", fontWeight = FontWeight.Companion.Bold)
+                        Text("Save", fontWeight = FontWeight.Bold)
                     }
                 },
 
@@ -131,10 +131,10 @@ fun TouchpadPositionEditor(
         }
     ) { innerPadding ->
         BoxWithConstraints(
-            modifier = Modifier.Companion.fillMaxSize().padding(innerPadding)
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
             val statusBarHeight = LocalDensity.current.run {
-                WindowInsets.Companion.statusBars.getTop(this).toDp()
+                WindowInsets.statusBars.getTop(this).toDp()
             }
 
             LaunchedEffect(preferences, maxWidth, maxHeight) {
@@ -165,13 +165,13 @@ fun TouchpadPositionEditor(
             }
 
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .offset(x = padX, y = padY)
                     .size(width = padWidth, height = padHeight)
                     .background(color = Color(0xAA333333), shape = RoundedCornerShape(20.dp))
                     .border(
                         width = 2.dp,
-                        color = Color.Companion.White,
+                        color = Color.White,
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
                     )
                     .pointerInput(Unit) {
@@ -256,42 +256,42 @@ fun TouchpadPositionEditor(
             ) {
                 // Center Handle for movement
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.Center)
+                    modifier = Modifier
+                        .align(Alignment.Center)
                         .size(24.dp)
                         .clip(CircleShape)
-                        .border(width = 2.dp, color = Color.Companion.White, shape = CircleShape)
+                        .border(width = 2.dp, color = Color.White, shape = CircleShape)
                 )
 
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.TopCenter)
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
                         .clip(CircleShape)
-                        .background(Color.Companion.White)
+                        .background(Color.White)
                         .size(width = 40.dp, height = 6.dp)
                 )
 
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.BottomCenter)
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
                         .clip(CircleShape)
-                        .background(Color.Companion.White)
+                        .background(Color.White)
                         .size(width = 40.dp, height = 6.dp)
                 )
 
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.CenterStart)
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
                         .clip(CircleShape)
-                        .background(Color.Companion.White)
+                        .background(Color.White)
                         .size(width = 6.dp, height = 40.dp)
                 )
 
                 Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.CenterEnd)
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
                         .clip(CircleShape)
-                        .background(Color.Companion.White)
+                        .background(Color.White)
                         .size(width = 6.dp, height = 40.dp)
                 )
             }

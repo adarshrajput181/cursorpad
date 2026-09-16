@@ -167,7 +167,7 @@ class TrackpadOverlayService: AccessibilityService() {
         val sharedSettings = applicationContext.dataStore.data
             .shareIn(
                 scope = serviceScope,
-                started = SharingStarted.Companion.Eagerly,
+                started = SharingStarted.Eagerly,
                 replay = 1
             )
 
