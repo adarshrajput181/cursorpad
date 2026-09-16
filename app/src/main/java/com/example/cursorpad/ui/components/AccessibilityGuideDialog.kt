@@ -1,16 +1,34 @@
-package com.example.cursorpad
+package com.example.cursorpad.ui.components
 
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,13 +36,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.example.cursorpad.ui.theme.CursorPadTheme
+import com.example.cursorpad.R
 import kotlinx.coroutines.launch
 
 data class GuideStepData(
@@ -118,36 +135,36 @@ fun AccessibilityGuideDialog(
             color = MaterialTheme.colorScheme.background
         ) {
             Column(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.Companion.CenterHorizontally
             ) {
                 // Header
                 Text(
                     text = "Enable Accessibility",
                     style = MaterialTheme.typography.headlineSmall
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.Companion.height(8.dp))
                 Text(
                     text = "Page ${pagerState.currentPage + 1} of ${steps.size}",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.Companion.height(16.dp))
 
                 HorizontalPager(
                     state = pagerState,
                 ) { page ->
                     val step = steps[page]
                     Card(
-                        modifier = Modifier.defaultMinSize(minHeight = 400.dp)
+                        modifier = Modifier.Companion.defaultMinSize(minHeight = 400.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            modifier = Modifier.Companion.padding(16.dp),
+                            horizontalAlignment = Alignment.Companion.CenterHorizontally
                         ) {
                             Box(
-                                modifier = Modifier
+                                modifier = Modifier.Companion
                                     .height(220.dp)
                                     .clip(RoundedCornerShape(16.dp))
                                     .background(MaterialTheme.colorScheme.surface),
@@ -155,38 +172,41 @@ fun AccessibilityGuideDialog(
                                 Image(
                                     painter = painterResource(step.imageID),
                                     contentDescription = null,
-                                    contentScale = ContentScale.FillWidth,
-                                    modifier = Modifier.fillMaxSize()
+                                    contentScale = ContentScale.Companion.FillWidth,
+                                    modifier = Modifier.Companion.fillMaxSize()
                                 )
                             }
-                            Spacer(Modifier.height(16.dp))
+                            Spacer(Modifier.Companion.height(16.dp))
                             Text(
                                 text = step.title,
                                 style = MaterialTheme.typography.titleLarge,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Companion.Center
                             )
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.Companion.height(8.dp))
                             Text(
                                 text = step.description,
                                 style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Companion.Center,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
-                        if (page == steps.size - 1 &&  showPermissionError) {
+                        if (page == steps.size - 1 && showPermissionError) {
                             Text(
                                 text = "You haven't enabled CursorPad yet. Please toggle it ON and come back.",
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                textAlign = TextAlign.Companion.Center,
+                                modifier = Modifier.Companion.padding(
+                                    horizontal = 16.dp,
+                                    vertical = 8.dp
+                                )
                             )
                         }
                     }
                 }
 
-                Spacer(Modifier.height(100.dp))
+                Spacer(Modifier.Companion.height(100.dp))
 
                 val currentStep = steps[pagerState.currentPage]
                 if (currentStep.buttonText != null) {
@@ -194,7 +214,7 @@ fun AccessibilityGuideDialog(
                         onClick = {
                             launchAction(currentStep)
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.Companion.fillMaxWidth()
                     ) {
                         Text(currentStep.buttonText)
                     }
@@ -203,17 +223,17 @@ fun AccessibilityGuideDialog(
                         onClick = {
                             scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.Companion.fillMaxWidth()
                     ) {
                         Text("Next")
                     }
                 }
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.Companion.height(8.dp))
 
                 TextButton(
                     onClick = { onDismiss() },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.Companion.fillMaxWidth()
                 ) {
                     Text("Not now")
                 }

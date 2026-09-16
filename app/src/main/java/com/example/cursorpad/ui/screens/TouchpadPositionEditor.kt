@@ -1,7 +1,5 @@
-package com.example.cursorpad
+package com.example.cursorpad.ui.screens
 
-import android.annotation.SuppressLint
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,11 +42,22 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesOf
+import com.example.cursorpad.data.TOUCHPAD_HEIGHT_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_HEIGHT_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_WIDTH_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_X_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_Y_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_HEIGHT_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_WIDTH_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_X_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_Y_KEY
+import com.example.cursorpad.data.TOUCHPAD_WIDTH_KEY
+import com.example.cursorpad.data.TOUCHPAD_X_KEY
+import com.example.cursorpad.data.TOUCHPAD_Y_KEY
+import com.example.cursorpad.data.dataStore
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,7 +78,7 @@ fun TouchpadPositionEditor(
     var padHeight by remember { mutableStateOf(0.dp) }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.Companion.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { Text("Edit Touchpad Position") },
@@ -111,7 +120,7 @@ fun TouchpadPositionEditor(
                             }
                         }
                     ) {
-                        Text("Save", fontWeight = FontWeight.Bold)
+                        Text("Save", fontWeight = FontWeight.Companion.Bold)
                     }
                 },
 
@@ -122,10 +131,10 @@ fun TouchpadPositionEditor(
         }
     ) { innerPadding ->
         BoxWithConstraints(
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            modifier = Modifier.Companion.fillMaxSize().padding(innerPadding)
         ) {
             val statusBarHeight = LocalDensity.current.run {
-                WindowInsets.statusBars.getTop(this).toDp()
+                WindowInsets.Companion.statusBars.getTop(this).toDp()
             }
 
             LaunchedEffect(preferences, maxWidth, maxHeight) {
@@ -156,11 +165,15 @@ fun TouchpadPositionEditor(
             }
 
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .offset(x = padX, y = padY)
                     .size(width = padWidth, height = padHeight)
                     .background(color = Color(0xAA333333), shape = RoundedCornerShape(20.dp))
-                    .border(width = 2.dp, color = Color.White, shape = RoundedCornerShape(20.dp))
+                    .border(
+                        width = 2.dp,
+                        color = Color.Companion.White,
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                    )
                     .pointerInput(Unit) {
                         // distance away from the corners
                         val margin = 20.dp
@@ -197,7 +210,8 @@ fun TouchpadPositionEditor(
                                 when (mode) {
                                     0 -> {
                                         padX = (padX + offsetX).coerceIn(0.dp, maxWidth - padWidth)
-                                        padY = (padY + offsetY).coerceIn(0.dp, maxHeight - padHeight)
+                                        padY =
+                                            (padY + offsetY).coerceIn(0.dp, maxHeight - padHeight)
                                     }
 
                                     // Top handle logic
@@ -242,42 +256,42 @@ fun TouchpadPositionEditor(
             ) {
                 // Center Handle for movement
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.Center)
                         .size(24.dp)
                         .clip(CircleShape)
-                        .border(width = 2.dp, color = Color.White, shape = CircleShape)
+                        .border(width = 2.dp, color = Color.Companion.White, shape = CircleShape)
                 )
 
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.TopCenter)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(Color.Companion.White)
                         .size(width = 40.dp, height = 6.dp)
                 )
 
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.BottomCenter)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(Color.Companion.White)
                         .size(width = 40.dp, height = 6.dp)
                 )
 
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.CenterStart)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(Color.Companion.White)
                         .size(width = 6.dp, height = 40.dp)
                 )
 
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.CenterEnd)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(Color.Companion.White)
                         .size(width = 6.dp, height = 40.dp)
                 )
             }

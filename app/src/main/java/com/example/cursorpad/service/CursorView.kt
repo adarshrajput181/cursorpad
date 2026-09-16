@@ -1,4 +1,4 @@
-package com.example.cursorpad
+package com.example.cursorpad.service
 
 import android.content.Context
 import android.graphics.Canvas

@@ -15,6 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.cursorpad.ui.screens.ActivationStripEditor
+import com.example.cursorpad.ui.screens.HomeScreen
+import com.example.cursorpad.ui.screens.SettingsScreen
+import com.example.cursorpad.ui.screens.TouchpadPositionEditor
+import com.example.cursorpad.ui.screens.Tutorial
 import com.example.cursorpad.ui.theme.CursorPadTheme
 
 class MainActivity : ComponentActivity() {

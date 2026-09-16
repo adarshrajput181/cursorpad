@@ -1,12 +1,9 @@
-package com.example.cursorpad
+package com.example.cursorpad.ui.screens
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.util.Log
+import android.content.res.Configuration
 import android.widget.Toast
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -44,16 +41,21 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesOf
+import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_HEIGHT
+import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_TOP
+import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_HEIGHT
+import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_TOP
+import com.example.cursorpad.data.ACTIVATION_STRIP_WIDTH
+import com.example.cursorpad.data.dataStore
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview(name = "Dark Mode", uiMode = UI_MODE_NIGHT_YES)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun ActivationStripEditor(
     side: String = "left",
     onBackPressed: () -> Unit = {}
@@ -74,7 +76,7 @@ fun ActivationStripEditor(
     var stripHeight by remember { mutableStateOf(defaultHeight) }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.Companion.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { Text("Edit Activation Position") },
@@ -109,7 +111,7 @@ fun ActivationStripEditor(
                             }
                         }
                     ) {
-                        Text("Save", fontWeight = FontWeight.Bold)
+                        Text("Save", fontWeight = FontWeight.Companion.Bold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -119,7 +121,7 @@ fun ActivationStripEditor(
         }
     ) { innerPadding ->
         BoxWithConstraints(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .padding(innerPadding)
                 .pointerInput(Unit) {
@@ -193,7 +195,7 @@ fun ActivationStripEditor(
             }
 
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .offset(x = stripX, y = stripY)
                     .size(width = stripWidth, height = stripHeight)
                     .background(color = MaterialTheme.colorScheme.secondary)
@@ -202,45 +204,45 @@ fun ActivationStripEditor(
 
             // Top Handle
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .offset(y = stripY - 1.dp)
                     .size(width = maxWidth, height = 2.dp)
-                    .background(Color.White)
+                    .background(Color.Companion.White)
             )
 
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .offset(y = stripY - 5.dp)
                     .size(width = maxWidth, height = 5.dp)
             ) {
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.BottomCenter)
                         .size(width = 60.dp, height = 6.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(Color.Companion.White)
                 )
             }
 
             // Bottom Handle
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .offset(y = stripY + stripHeight)
                     .size(width = maxWidth, height = 2.dp)
-                    .background(Color.White)
+                    .background(Color.Companion.White)
             )
 
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .offset(y = stripY + stripHeight)
                     .size(width = maxWidth, height = 6.dp)
             ) {
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.TopCenter)
                         .size(width = 60.dp, height = 6.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(Color.Companion.White)
                 )
             }
         }

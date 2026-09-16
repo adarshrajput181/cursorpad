@@ -24,7 +24,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".TrackpadOverlayService"
+            android:name=".service.TrackpadOverlayService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="false">
             <intent-filter>

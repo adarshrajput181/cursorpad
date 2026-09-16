@@ -1,4 +1,5 @@
-package com.example.cursorpad
+package com.example.cursorpad.service
+
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.animation.AnimatorSet
@@ -13,7 +14,6 @@ import android.graphics.Color
 import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.view.Gravity
@@ -22,8 +22,39 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalViewConfiguration
+import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_HEIGHT
+import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_TOP
+import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_HEIGHT
+import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_TOP
+import com.example.cursorpad.data.ACTIVATION_STRIP_WIDTH
+import com.example.cursorpad.data.BORDER_SIZE_KEY
+import com.example.cursorpad.data.CURSOR_COLOR_KEY
+import com.example.cursorpad.data.CURSOR_SIZE_KEY
+import com.example.cursorpad.data.CursorState
+import com.example.cursorpad.data.SHOW_DOT_KEY
+import com.example.cursorpad.data.StripConfig
+import com.example.cursorpad.data.StripState
+import com.example.cursorpad.data.TOUCHPAD_COLOR_KEY
+import com.example.cursorpad.data.TOUCHPAD_HEIGHT_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_HEIGHT_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_WIDTH_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_X_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_Y_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_HEIGHT_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_WIDTH_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_X_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_Y_KEY
+import com.example.cursorpad.data.TOUCHPAD_SENSITIVITY_KEY
+import com.example.cursorpad.data.TOUCHPAD_SEPARATE_LAYOUT_KEY
+import com.example.cursorpad.data.TOUCHPAD_WIDTH_KEY
+import com.example.cursorpad.data.TOUCHPAD_X_KEY
+import com.example.cursorpad.data.TOUCHPAD_Y_KEY
+import com.example.cursorpad.data.TouchpadConfig
+import com.example.cursorpad.data.TouchpadState
+import com.example.cursorpad.data.dataStore
+import com.example.cursorpad.data.toCursorState
+import com.example.cursorpad.data.toStripState
+import com.example.cursorpad.data.toTouchpadState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,8 +64,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -138,7 +167,7 @@ class TrackpadOverlayService: AccessibilityService() {
         val sharedSettings = applicationContext.dataStore.data
             .shareIn(
                 scope = serviceScope,
-                started = SharingStarted.Eagerly,
+                started = SharingStarted.Companion.Eagerly,
                 replay = 1
             )
 
@@ -564,7 +593,7 @@ class TrackpadOverlayService: AccessibilityService() {
         val screenHeight = displayMetrics.heightPixels
         val screenWidth = displayMetrics.widthPixels
         val density = displayMetrics.density
-        cursorAreaRect = Rect(0, 0,screenWidth, screenHeight)
+        cursorAreaRect = Rect(0, 0, screenWidth, screenHeight)
 
         val preferences = runBlocking { applicationContext.dataStore.data.first() }
         separateTouchpad = preferences[TOUCHPAD_SEPARATE_LAYOUT_KEY] ?: true
@@ -719,7 +748,8 @@ class TrackpadOverlayService: AccessibilityService() {
     private fun injectLongPress(x: Float, y: Float): Boolean {
         val path = Path().apply { moveTo(x, y) }
         val gesture = GestureDescription.Builder()
-            .addStroke(GestureDescription.StrokeDescription(path, 0,
+            .addStroke(
+                GestureDescription.StrokeDescription(path, 0,
                 ViewConfiguration.getLongPressTimeout().toLong() + 50
             ))
             .build()

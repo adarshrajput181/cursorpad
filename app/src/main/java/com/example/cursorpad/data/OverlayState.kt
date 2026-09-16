@@ -1,8 +1,33 @@
-package com.example.cursorpad
+package com.example.cursorpad.data
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.datastore.preferences.core.Preferences
+import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_ENABLED
+import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_HEIGHT
+import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_TOP
+import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_ENABLED
+import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_HEIGHT
+import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_TOP
+import com.example.cursorpad.data.ACTIVATION_STRIP_WIDTH
+import com.example.cursorpad.data.BORDER_SIZE_KEY
+import com.example.cursorpad.data.CURSOR_COLOR_KEY
+import com.example.cursorpad.data.CURSOR_SIZE_KEY
+import com.example.cursorpad.data.SHOW_DOT_KEY
+import com.example.cursorpad.data.TOUCHPAD_COLOR_KEY
+import com.example.cursorpad.data.TOUCHPAD_HEIGHT_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_HEIGHT_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_WIDTH_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_X_KEY
+import com.example.cursorpad.data.TOUCHPAD_LEFT_Y_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_HEIGHT_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_WIDTH_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_X_KEY
+import com.example.cursorpad.data.TOUCHPAD_RIGHT_Y_KEY
+import com.example.cursorpad.data.TOUCHPAD_SEPARATE_LAYOUT_KEY
+import com.example.cursorpad.data.TOUCHPAD_WIDTH_KEY
+import com.example.cursorpad.data.TOUCHPAD_X_KEY
+import com.example.cursorpad.data.TOUCHPAD_Y_KEY
 
 data class CursorState(
     val color: Int,
@@ -39,7 +64,7 @@ data class StripState(
 
 fun Preferences.toCursorState(): CursorState {
     return CursorState(
-        color = this[CURSOR_COLOR_KEY] ?: Color.Green.toArgb(),
+        color = this[CURSOR_COLOR_KEY] ?: Color.Companion.Green.toArgb(),
         size = this[CURSOR_SIZE_KEY] ?: 30f,
         borderSize = this[BORDER_SIZE_KEY] ?: 2f,
         showDot = this[SHOW_DOT_KEY] ?: true

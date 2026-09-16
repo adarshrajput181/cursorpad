@@ -1,4 +1,4 @@
-package com.example.cursorpad
+package com.example.cursorpad.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -24,15 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Help
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Help
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -75,14 +67,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesOf
+import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_ENABLED
+import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_ENABLED
+import com.example.cursorpad.data.ACTIVATION_STRIP_WIDTH
+import com.example.cursorpad.data.BORDER_SIZE_KEY
+import com.example.cursorpad.data.CURSOR_COLOR_KEY
+import com.example.cursorpad.data.CURSOR_SIZE_KEY
+import com.example.cursorpad.data.DYNAMIC_COLOR_KEY
+import com.example.cursorpad.data.SHOW_DOT_KEY
+import com.example.cursorpad.data.TOUCHPAD_COLOR_KEY
+import com.example.cursorpad.data.TOUCHPAD_LAYOUT_SIDE_KEY
+import com.example.cursorpad.data.TOUCHPAD_SENSITIVITY_KEY
+import com.example.cursorpad.data.TOUCHPAD_SEPARATE_LAYOUT_KEY
+import com.example.cursorpad.data.dataStore
 import kotlinx.coroutines.launch
 
 val colorOptions = listOf(
     "Dynamic" to null,
-    "Red" to Color.Red,
-    "Green" to Color.Green,
-    "Blue" to Color.Blue,
-    "White" to Color.White
+    "Red" to Color.Companion.Red,
+    "Green" to Color.Companion.Green,
+    "Blue" to Color.Companion.Blue,
+    "White" to Color.Companion.White
 )
 
 val touchpadColorOptions = listOf(
@@ -110,7 +115,7 @@ fun SettingsScreen(
     var cursorSize by remember { mutableFloatStateOf(settings[CURSOR_SIZE_KEY] ?: 30f) }
     var borderSize by remember { mutableFloatStateOf(settings[BORDER_SIZE_KEY] ?: 2f) }
     val useDynamicColor = settings[DYNAMIC_COLOR_KEY] ?: true
-    val savedColorInt = settings[CURSOR_COLOR_KEY] ?: Color.Red.toArgb()
+    val savedColorInt = settings[CURSOR_COLOR_KEY] ?: Color.Companion.Red.toArgb()
     val currentDynamicColorInt = MaterialTheme.colorScheme.primary.toArgb()
 
     var colorDropdownExpanded by remember { mutableStateOf(false) }
@@ -171,15 +176,15 @@ fun SettingsScreen(
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxWidth()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 20.dp)
         ) {
-            Column(modifier = Modifier.padding(top = 24.dp, start = 24.dp, end = 24.dp)) {
+            Column(modifier = Modifier.Companion.padding(top = 24.dp, start = 24.dp, end = 24.dp)) {
                 SectionHeading("Cursor Settings")
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.Companion.height(10.dp))
 
                 CursorPreviewArea(
                     cursorColor = if (useDynamicColor) MaterialTheme.colorScheme.primary else Color(
@@ -190,7 +195,7 @@ fun SettingsScreen(
                     showDot = showDot
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.Companion.height(10.dp))
 
                 LabelledSlider(
                     property = cursorSize,
@@ -226,26 +231,26 @@ fun SettingsScreen(
             }
 
             Column(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .fillMaxWidth()
                     .clickable { colorDropdownExpanded = !colorDropdownExpanded }
                     .padding(vertical = 10.dp, horizontal = 24.dp)
             ) {
                 Text("Cursor Color", fontSize = 16.sp)
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.Companion.height(6.dp))
 
                 Text(
                     text = selectedColorText,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                 )
 
                 DropdownMenu(
                     expanded = colorDropdownExpanded,
                     onDismissRequest = { colorDropdownExpanded = false },
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .width(150.dp)
                         .background(
                             MaterialTheme.colorScheme.surfaceContainerLow,
@@ -255,7 +260,7 @@ fun SettingsScreen(
                 ) {
                     colorOptions.forEach { (name, color) ->
                         DropdownMenuItem(
-                            modifier = Modifier.padding(start = 10.dp),
+                            modifier = Modifier.Companion.padding(start = 10.dp),
                             text = {
                                 Text(name, fontSize = 15.sp)
                             },
@@ -272,7 +277,7 @@ fun SettingsScreen(
                                         } else {
                                             preferences[DYNAMIC_COLOR_KEY] = false
                                             preferences[CURSOR_COLOR_KEY] =
-                                                color?.toArgb() ?: Color.White.toArgb()
+                                                color?.toArgb() ?: Color.Companion.White.toArgb()
                                         }
                                     }
                                 }
@@ -282,12 +287,12 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.Companion.height(10.dp))
             Row(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Companion.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "Show Center Dot", fontSize = 16.sp)
@@ -305,18 +310,21 @@ fun SettingsScreen(
             }
 
             Column(
-                modifier = Modifier.padding(24.dp)
+                modifier = Modifier.Companion.padding(24.dp)
             ) {
                 SectionHeading("Touchpad Settings")
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.Companion.height(10.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.Companion.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
                         Text("Separate Layout", style = MaterialTheme.typography.bodyLarge)
-                        Text("Use different touchpad for each strip", style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            "Use different touchpad for each strip",
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
 
                     Switch(
@@ -331,7 +339,7 @@ fun SettingsScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.Companion.height(10.dp))
 
                 TouchpadPositionCard(
                     onEditClick = { side ->
@@ -347,10 +355,10 @@ fun SettingsScreen(
                         }
                     }
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.Companion.height(10.dp))
 
                 Column(
-                    modifier = Modifier.padding(vertical = 5.dp)
+                    modifier = Modifier.Companion.padding(vertical = 5.dp)
                 ) {
                     Text("Sensitivity: ${(sensitivity * 100).toInt()}%", fontSize = 16.sp)
                     Slider(
@@ -367,32 +375,36 @@ fun SettingsScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.Companion.height(10.dp))
 
                 Text("Touchpad Color", style = MaterialTheme.typography.titleSmall)
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.Companion.height(10.dp))
                 // Touchpad preview
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                         .height(100.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
                 ) {
-                    TransparencyGrid(modifier = Modifier.fillMaxSize())
+                    TransparencyGrid(modifier = Modifier.Companion.fillMaxSize())
 
                     Box(
-                        modifier = Modifier
+                        modifier = Modifier.Companion
                             .size(140.dp, 80.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(touchpadColor))
-                            .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                            .align(Alignment.Center)
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                            .background(androidx.compose.ui.graphics.Color(touchpadColor))
+                            .border(
+                                1.dp,
+                                Color.Companion.White.copy(alpha = 0.5f),
+                                androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                            )
+                            .align(Alignment.Companion.Center)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.Companion.height(16.dp))
                 Row(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -423,7 +435,7 @@ fun SettingsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.Companion.height(10.dp))
                 Text("Opacity: $alphaPercent%", fontSize = 16.sp)
                 Slider(
                     value = alphaPercent.toFloat(),
@@ -479,10 +491,10 @@ fun ActivationStripSettings(
         rightStripEnabled = settings[ACTIVATION_STRIP_RIGHT_ENABLED] ?: true
     }
 
-    Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 10.dp)) {
+    Column(modifier = Modifier.Companion.padding(start = 24.dp, end = 24.dp, bottom = 10.dp)) {
         SectionHeading("Activation Strip Settings")
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.Companion.height(10.dp))
         LabelledSlider(
             property = activationStripWidth,
             label = "Width",
@@ -499,7 +511,7 @@ fun ActivationStripSettings(
             steps = 29
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.Companion.height(10.dp))
 
         StripEditorCard(
             side = "left",
@@ -508,7 +520,7 @@ fun ActivationStripSettings(
             onNavigateToStripEditor = onNavigateToStripEditor
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.Companion.height(10.dp))
 
         StripEditorCard(
             side = "right",
@@ -533,20 +545,20 @@ fun StripEditorCard(
 
     Card {
         Row(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Companion.CenterVertically
         ) {
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.Companion.weight(1f)
             ) {
                 Text(
                     text = "${if (side == "left") "Left" else "Right"} Strip",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.Companion.height(4.dp))
                 Text(
                     text = "Swipe from the $side edge to open touchpad.",
                     style = MaterialTheme.typography.bodySmall,
@@ -555,37 +567,37 @@ fun StripEditorCard(
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.Companion.width(16.dp))
 
             val contentAlignment =
-                if (side == "left") Alignment.CenterStart else Alignment.CenterEnd
+                if (side == "left") Alignment.Companion.CenterStart else Alignment.Companion.CenterEnd
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .size(width = 32.dp, height = 48.dp)
                     .background(
                         color = MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(6.dp)
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
                     )
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(6.dp)
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
                     ),
                 contentAlignment = contentAlignment
             ) {
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .size(width = 4.dp, height = 18.dp)
                         .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(4.dp)
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
                         )
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.Companion.width(12.dp))
             Switch(
                 checked = stripEnabled,
                 onCheckedChange = { newValue ->
@@ -604,7 +616,7 @@ fun StripEditorCard(
         }
 
         Row(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         ) {
@@ -627,38 +639,38 @@ fun ColorSwatchItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(horizontalAlignment = Alignment.Companion.CenterHorizontally) {
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .size(40.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
                 .background(Color(colorInt))
                 .border(
                     width = if (isSelected) 2.5.dp else 1.dp,
                     color = if (isSelected) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
                 )
                 .clickable { onClick() }
         ) {
             if (colorInt == MaterialTheme.colorScheme.primaryContainer.toArgb()) {
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxSize()
-                        .background(color = Color.Black.copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center
+                        .background(color = Color.Companion.Black.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Companion.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
                         contentDescription = "Dynamic Color",
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
+                        tint = Color.Companion.White,
+                        modifier = Modifier.Companion.size(18.dp)
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.Companion.height(6.dp))
 
         Text(
             text = label,
@@ -682,36 +694,36 @@ fun CursorPreviewArea(
     showDot: Boolean
 ) {
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .height(120.dp)
             .background(
                 color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(12.dp)
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
             )
             .border(
                 BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant),
-                RoundedCornerShape(12.dp)
+                androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Companion.Center
     ) {
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .size(cursorSize.dp)
                 .clip(CircleShape)
                 .background(cursorColor)
                 .border(
-                    BorderStroke(borderSize.dp, Color.White),
+                    BorderStroke(borderSize.dp, Color.Companion.White),
                     CircleShape
                 ),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Companion.Center
         ) {
             if (showDot) {
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .size(3.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(Color.Companion.White)
                 )
             }
         }
@@ -729,7 +741,7 @@ fun LabelledSlider(
     steps: Int = 0,
 ) {
     Column(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .padding(vertical = 5.dp)
     ) {
         Text("$label: ${property.toInt()}", fontSize = 16.sp)
@@ -750,7 +762,7 @@ fun SectionHeading(
     Text(
         heading,
         fontSize = 14.sp,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.Companion.Bold,
         color = MaterialTheme.colorScheme.primary,
     )
 }
@@ -764,20 +776,20 @@ fun TouchpadPositionCard(
 ) {
     Card {
         Row(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxWidth()
-                .padding(start =16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.Companion.CenterVertically
         ) {
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.Companion.weight(1f)
             ) {
                 Text(
                     text = "Touchpad Layout",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.Companion.height(4.dp))
                 Text(
                     text = "Customize the placement of the touchpad.",
                     style = MaterialTheme.typography.bodySmall,
@@ -786,37 +798,38 @@ fun TouchpadPositionCard(
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.Companion.width(16.dp))
 
 
-            val boxAlignment = if (selectedSide == "right") Alignment.BottomEnd else Alignment.BottomStart
+            val boxAlignment =
+                if (selectedSide == "right") Alignment.Companion.BottomEnd else Alignment.Companion.BottomStart
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .size(width = 32.dp, height = 48.dp)
                     .background(
                         color = MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(6.dp)
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
                     )
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(6.dp)
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
                     ),
                 contentAlignment = boxAlignment
             ) {
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .size(width = 18.dp, height = 18.dp)
                         .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(4.dp),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp),
                         )
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.Companion.width(12.dp))
 
             Button(
                 onClick = { if (separateLayoutEnabled) onEditClick(selectedSide) else onEditClick("shared") },
@@ -827,10 +840,10 @@ fun TouchpadPositionCard(
         }
 
         Row(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            modifier = Modifier.Companion.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         ) {
             SingleChoiceSegmentedButtonRow(
-                modifier = Modifier.weight(1f, fill = false)
+                modifier = Modifier.Companion.weight(1f, fill = false)
             ) {
                 SegmentedButton(
                     selected = selectedSide == "left",
@@ -855,7 +868,7 @@ fun TouchpadPositionCard(
 }
 
 @Composable
-fun TransparencyGrid(modifier: Modifier = Modifier) {
+fun TransparencyGrid(modifier: Modifier = Modifier.Companion) {
     Canvas(modifier = modifier) {
         val tileSize = 12.dp.toPx()
         val width = size.width
