@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.HorizontalDivider
@@ -67,7 +68,8 @@ private fun isAccessibilityServiceEnabled(context: Context): Boolean {
 @Composable
 fun HomeScreen(
     onNavigateToSettings: () -> Unit = {},
-    onNavigateToTutorial: () -> Unit = {}
+    onNavigateToTutorial: () -> Unit = {},
+    onNavigateToFAQ: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -170,6 +172,23 @@ fun HomeScreen(
             modifier = Modifier.padding(vertical = 4.dp),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
         )
+        HomeListRow(
+            icon = Icons.Default.QuestionAnswer,
+            title = "FAQ",
+            trailingContent = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            onClick = { onNavigateToFAQ() }
+        )
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 4.dp),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+        )
 
         HomeListRow(
             icon = Icons.Default.PlayArrow,
@@ -211,7 +230,6 @@ fun HomeScreen(
             },
             onClick = onNavigateToSettings
         )
-
         if (showGuide) {
             AccessibilityGuideDialog(
                 onDismiss = { showGuide = false },

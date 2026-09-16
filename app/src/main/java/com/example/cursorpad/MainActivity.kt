@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.cursorpad.ui.screens.ActivationStripEditor
+import com.example.cursorpad.ui.screens.FAQScreen
 import com.example.cursorpad.ui.screens.HomeScreen
 import com.example.cursorpad.ui.screens.SettingsScreen
 import com.example.cursorpad.ui.screens.TouchpadPositionEditor
@@ -50,6 +51,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToTutorial = {
                                 navController.navigate("tutorial")
+                            },
+                            onNavigateToFAQ = {
+                                navController.navigate("faq")
                             }
                         )
                     }
@@ -108,6 +112,18 @@ class MainActivity : ComponentActivity() {
                         popExitTransition = { slideOutHorizontally( targetOffsetX = { it }) }
                     ) {
                         Tutorial(
+                            onBackPressed = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        "faq",
+                        enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                        exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) },
+                        popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
+                        popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
+                    ) {
+                        FAQScreen(
                             onBackPressed = { navController.popBackStack() }
                         )
                     }
