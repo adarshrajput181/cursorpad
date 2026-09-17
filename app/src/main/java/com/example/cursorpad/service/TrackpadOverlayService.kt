@@ -31,6 +31,7 @@ import com.example.cursorpad.data.BORDER_SIZE_KEY
 import com.example.cursorpad.data.CURSOR_COLOR_KEY
 import com.example.cursorpad.data.CURSOR_SIZE_KEY
 import com.example.cursorpad.data.CursorState
+import com.example.cursorpad.data.OVERLAY_ENABLED
 import com.example.cursorpad.data.SHOW_DOT_KEY
 import com.example.cursorpad.data.StripConfig
 import com.example.cursorpad.data.StripState
@@ -121,11 +122,6 @@ class TrackpadOverlayService: AccessibilityService() {
         }
     }
 
-    companion object {
-        // State responsible for enabling/disabling overlays
-        val overlayEnabled = MutableStateFlow(false)
-    }
-
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
@@ -147,29 +143,33 @@ class TrackpadOverlayService: AccessibilityService() {
         createCursorOverlay()
         createActivationStripOverlay()
 
-        serviceScope.launch {
-            overlayEnabled.collect { isEnabled ->
-                if (isEnabled) {
-                    leftStripView?.visibility = if (currentStripState.leftStrip.active) View.VISIBLE else View.GONE
-                    rightStripView?.visibility = if (currentStripState.rightStrip.active) View.VISIBLE else View.GONE
-                } else {
-                    cursorView.visibility = View.GONE
-                    touchpadViews.forEach { (_, touchpadView) ->
-                        touchpadView.visibility = View.GONE
-                    }
-
-                    leftStripView?.visibility = View.GONE
-                    rightStripView?.visibility = View.GONE
-                }
-            }
-        }
-
         val sharedSettings = applicationContext.dataStore.data
             .shareIn(
                 scope = serviceScope,
                 started = SharingStarted.Eagerly,
                 replay = 1
             )
+
+        serviceScope.launch {
+            sharedSettings
+                .map { it[OVERLAY_ENABLED] ?: false}
+                .distinctUntilChanged()
+                .collect { isEnabled ->
+                    Log.d("TrackpadOverlayService", "Overlay is $isEnabled")
+                    if (isEnabled) {
+                        leftStripView?.visibility = if (currentStripState.leftStrip.active) View.VISIBLE else View.GONE
+                        rightStripView?.visibility = if (currentStripState.rightStrip.active) View.VISIBLE else View.GONE
+                    } else {
+                        cursorView.visibility = View.GONE
+                        touchpadViews.forEach { (_, touchpadView) ->
+                            touchpadView.visibility = View.GONE
+                        }
+
+                        leftStripView?.visibility = View.GONE
+                        rightStripView?.visibility = View.GONE
+                    }
+            }
+        }
 
         serviceScope.launch {
             sharedSettings

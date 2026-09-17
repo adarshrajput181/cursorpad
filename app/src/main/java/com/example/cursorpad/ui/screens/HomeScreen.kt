@@ -45,16 +45,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.cursorpad.data.CURSOR_COLOR_KEY
 import com.example.cursorpad.data.DYNAMIC_COLOR_KEY
+import com.example.cursorpad.data.OVERLAY_ENABLED
 import com.example.cursorpad.data.dataStore
 import com.example.cursorpad.service.TrackpadOverlayService
 import com.example.cursorpad.ui.components.AccessibilityGuideDialog
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 private fun isAccessibilityServiceEnabled(context: Context): Boolean {
@@ -75,7 +78,9 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     var isAccessibilityEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
     var showGuide by remember { mutableStateOf(false) }
-    val isOverlayEnabled by TrackpadOverlayService.overlayEnabled.collectAsState(initial = false)
+    val overlayActive by context.dataStore.data
+        .map { it[OVERLAY_ENABLED] ?: false }
+        .collectAsState(initial = false)
 
     val accessibilityLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -202,10 +207,10 @@ fun HomeScreen(
                     ),
             trailingContent = {
                 Switch(
-                    checked = isOverlayEnabled,
-                    onCheckedChange = {
+                    checked = overlayActive,
+                    onCheckedChange = { newValue ->
                         scope.launch {
-                            TrackpadOverlayService.overlayEnabled.value = it
+                            context.dataStore.edit { it[OVERLAY_ENABLED] = newValue }
                         }
                     },
                     enabled = isAccessibilityEnabled

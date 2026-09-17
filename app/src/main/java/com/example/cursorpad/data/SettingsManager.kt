@@ -11,6 +11,8 @@ import androidx.datastore.preferences.preferencesDataStore
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "customization_settings")
 
+val OVERLAY_ENABLED = booleanPreferencesKey(name = "overlay_enabled")
+
 val CURSOR_SIZE_KEY = floatPreferencesKey(name = "cursor_size")
 val BORDER_SIZE_KEY =
     floatPreferencesKey(name = "border_size") // TODO: Make this CURSOR_BORDER_SIZE_KEY
