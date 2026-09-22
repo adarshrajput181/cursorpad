@@ -1,8 +1,11 @@
 <p align="center">
-# CursorPad
+  <img src="screenshots/logo.webp" width='300' />
+</p>
+<h3 align="center">CursorPad</h3>
+<p align="center">
 An overlay touchpad that helps you reach all of your screen with a single hand.
 
-  <img src="screenshots/cursorpad-on-home.webp" width='300'>
+  <img src="screenshots/cursorpad-on-home.webp" width='300' />
 </p>
 
 ## About CursorPad
