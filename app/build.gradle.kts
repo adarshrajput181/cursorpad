@@ -12,7 +12,7 @@ android {
     defaultConfig {
         applicationId = "com.example.cursorpad"
         minSdk = 33
-        targetSdk = 33
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 

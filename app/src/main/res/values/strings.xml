@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CursorPad</string>
+    <string name="app_name">Cursor Pad</string>
     <string name="accessibility_service_description">
         CursorPad uses accessibility service to simulate taps on your screen. Without this service the app cannot function.
     </string>
