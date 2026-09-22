@@ -54,5 +54,8 @@ There are a few things to be aware of before installing the app:
   3. Install the app.
   4. (Optional) Re-enable Play Protect afterwards.
 
+## License
+MPL 2.0 - see [LICENSE](LICENSE)
+
 ## Credits
 - Swipe Animation by Rudi Louw from LottieFiles
