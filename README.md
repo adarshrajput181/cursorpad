@@ -1,11 +1,13 @@
 <p align="center">
-  <img src="screenshots/logo.webp" width='300' />
+  <img src="screenshots/logo.webp" width='250' alt="CursorPad Logo"/>
+  <h2 align="center">CursorPad</h2>
+  <p align="center">
+  An overlay touchpad that helps you reach all of your screen with a single hand.
+  </p>
 </p>
-<h3 align="center">CursorPad</h3>
-<p align="center">
-An overlay touchpad that helps you reach all of your screen with a single hand.
 
-  <img src="screenshots/cursorpad-on-home.webp" width='300' />
+<p align="center">
+  <img src="screenshots/cursorpad-on-home.webp" width='300' alt="An overlay running on Android home screen"/>
 </p>
 
 ## About CursorPad
