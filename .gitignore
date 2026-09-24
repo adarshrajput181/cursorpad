@@ -2,6 +2,7 @@
 /app/release/
 /app/build/
 /app/debug/
+/build
 *.apk
 *.aab
 *.ap_
@@ -10,6 +11,7 @@
 # Keystores and signing
 *.jks
 *.keystore
+*.p12
 keystore.properties
 
 # IDE
@@ -17,6 +19,7 @@ keystore.properties
 .DS_Store
 
 # Android studio generated
+.kotlin/
 .gradle
 /captures
 .externalNativeBuild

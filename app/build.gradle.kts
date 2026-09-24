@@ -1,6 +1,16 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) {
+        load(FileInputStream(keystorePropsFile))
+    }
 }
 
 android {
@@ -10,13 +20,31 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.cursorpad"
+        applicationId = "com.cursorpad.app"
         minSdk = 33
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 100
+        versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(
+                System.getenv("KEYSTORE_PATH")
+                    ?: keystoreProps.getProperty("storeFile")
+                    ?: "missing-keystore.p12"
+            )
+
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+                ?: keystoreProps.getProperty("storePassword") ?: ""
+
+            keyAlias = System.getenv("KEY_ALIAS")
+                ?: keystoreProps.getProperty("keyAlias") ?: ""
+
+            keyPassword = storePassword
+        }
     }
 
     buildTypes {
@@ -27,6 +55,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -50,7 +79,6 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
-    implementation(libs.androidx.material3)
     implementation(libs.lottie.compose)
 
     testImplementation(libs.junit)
