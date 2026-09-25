@@ -40,16 +40,21 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: ./gradlew assembleRelease --no-daemon
 
+      - name : Rename APK
+        run: |
+          mv app/build/outputs/apk/release/app-release.apk \
+             app/build/outputs/apk/release/cursorpad-${{ github.ref_name }}.apk
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
           name: cursorpad-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          path: app/build/outputs/apk/release/cursorpad-${{ github.ref_name}}.apk
           retention-days: 7
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          files: app/build/outputs/apk/release/app-release.apk
+          files: app/build/outputs/apk/release/cursorpad-${{ github.ref_name}}.apk
           generate_release_notes: true
 
