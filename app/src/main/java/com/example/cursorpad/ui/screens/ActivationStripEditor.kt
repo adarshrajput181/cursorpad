@@ -8,7 +8,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,14 +39,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesOf
@@ -65,13 +67,13 @@ fun ActivationStripEditor(
     onBackPressed: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val density = LocalResources.current.displayMetrics.density
+    val density = LocalDensity.current.density
     val scope = rememberCoroutineScope()
     val dataStore = context.dataStore
     val preferences by dataStore.data.collectAsState(initial = preferencesOf())
 
     val defaultWidth = 20.dp
-    val defaultHeight = 240.dp
+    val defaultHeight = 200.dp
     val defaultX = 0.dp
     var defaultY = 0.dp
 
@@ -79,6 +81,13 @@ fun ActivationStripEditor(
     var stripY by remember { mutableStateOf(defaultY) }
     var stripWidth by remember { mutableStateOf(defaultWidth) }
     var stripHeight by remember { mutableStateOf(defaultHeight) }
+
+    val buttonNavHeight = 80.dp
+    val currentNavHeight = WindowInsets.navigationBars.getBottom(LocalDensity.current).dp
+    val extraReservedBottomHeight = (buttonNavHeight - currentNavHeight).coerceAtLeast(0.dp)
+
+    // Top padding provided by Scaffold
+    var contentTopPadding by remember { mutableStateOf(0.dp) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -96,9 +105,7 @@ fun ActivationStripEditor(
                     TextButton(
                         onClick = {
                             scope.launch {
-                                val topBarHeight = 64.dp // default height for the top bar in M3
-                                val yOffset = topBarHeight
-
+                                val yOffset = contentTopPadding
                                 val absoluteY = stripY + yOffset
                                 dataStore.edit { preferences ->
                                     if (side == "left") {
@@ -125,12 +132,13 @@ fun ActivationStripEditor(
             )
         }
     ) { innerPadding ->
+        contentTopPadding = innerPadding.calculateTopPadding()
         val dashedLineColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .pointerInput(Unit) {
+                .pointerInput(extraReservedBottomHeight) {
                     val hitSlop = 30.dp
                     var mode = 0
 
@@ -170,8 +178,9 @@ fun ActivationStripEditor(
 
                                 2 -> {
                                     val newHeight = stripHeight + dragY
+                                    val totalHeight = size.height.toDp() - extraReservedBottomHeight
 
-                                    if (newHeight >= 50.dp) {
+                                    if (newHeight >= 50.dp && totalHeight >= stripY + newHeight) {
                                         stripHeight = newHeight
                                     }
                                 }
@@ -181,12 +190,12 @@ fun ActivationStripEditor(
                 }
         ) {
 
+            val contentBottomPadding = innerPadding.calculateBottomPadding()
             LaunchedEffect(preferences) {
-                defaultY = maxHeight - defaultHeight
+                defaultY = maxHeight - defaultHeight - contentBottomPadding
                 stripWidth = preferences[ACTIVATION_STRIP_WIDTH]?.dp ?: defaultWidth
-                val topBarHeight = 64.dp
                 // the amount by which the y value has to be shifted to reflect absolute Y coordinate
-                val yOffset = topBarHeight
+                val yOffset = contentTopPadding
 
                 if (side == "left") {
                     stripY = (preferences[ACTIVATION_STRIP_LEFT_TOP]?.dp

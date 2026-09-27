@@ -88,13 +88,13 @@ fun Preferences.toStripState(
             active = this[ACTIVATION_STRIP_LEFT_ENABLED] ?: true,
             top = this[ACTIVATION_STRIP_LEFT_TOP] ?: defaultTop,
             width = this[ACTIVATION_STRIP_WIDTH] ?: 20f,
-            height = this[ACTIVATION_STRIP_LEFT_HEIGHT] ?: 240f
+            height = this[ACTIVATION_STRIP_LEFT_HEIGHT] ?: 200f
         ),
         rightStrip = StripConfig(
             active = this[ACTIVATION_STRIP_RIGHT_ENABLED] ?: true,
             top = this[ACTIVATION_STRIP_RIGHT_TOP] ?: defaultTop,
             width = this[ACTIVATION_STRIP_WIDTH] ?: 20f,
-            height = this[ACTIVATION_STRIP_RIGHT_HEIGHT] ?: 240f
+            height = this[ACTIVATION_STRIP_RIGHT_HEIGHT] ?: 200f
         )
     )
 }

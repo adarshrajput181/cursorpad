@@ -22,7 +22,6 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import androidx.core.view.doOnLayout
 import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_HEIGHT
 import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_TOP
 import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_HEIGHT
@@ -64,7 +63,6 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -181,7 +179,7 @@ class TrackpadOverlayService: AccessibilityService() {
         val density = resources.displayMetrics.density
         val screenHeight = resources.displayMetrics.heightPixels
         val screenWidth = resources.displayMetrics.widthPixels
-        val defaultHeightDp = 200f
+        var defaultHeightDp = 200f
         val defaultWidthDp = 200f
         val defaultXDp = screenWidth / density - defaultWidthDp - 24f
         val defaultYDp = screenHeight / density - defaultHeightDp - 24f
@@ -197,7 +195,8 @@ class TrackpadOverlayService: AccessibilityService() {
                 }
         }
 
-        val defaultTop = screenHeight / density - defaultHeightDp
+        defaultHeightDp = 200f
+        val defaultTop = screenHeight / density - defaultHeightDp - 60f
         serviceScope.launch {
             sharedSettings
                 .map { it.toStripState(defaultTop) }
@@ -357,8 +356,8 @@ class TrackpadOverlayService: AccessibilityService() {
         val preferences = runBlocking { applicationContext.dataStore.data.first() }
 
         val defaultWidthDp = 20f
-        val defaultHeightDp = 240f
-        val defaultY = screenHeight / density - defaultHeightDp
+        val defaultHeightDp = 200f
+        val defaultY = screenHeight / density - defaultHeightDp - 60f
 
         val width = preferences[ACTIVATION_STRIP_WIDTH] ?: defaultWidthDp
         var height: Float
