@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.view.doOnLayout
 import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_HEIGHT
 import com.example.cursorpad.data.ACTIVATION_STRIP_LEFT_TOP
 import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_HEIGHT
@@ -155,7 +156,6 @@ class TrackpadOverlayService: AccessibilityService() {
                 .map { it[OVERLAY_ENABLED] ?: false}
                 .distinctUntilChanged()
                 .collect { isEnabled ->
-                    Log.d("TrackpadOverlayService", "Overlay is $isEnabled")
                     if (isEnabled) {
                         leftStripView?.visibility = if (currentStripState.leftStrip.active) View.VISIBLE else View.GONE
                         rightStripView?.visibility = if (currentStripState.rightStrip.active) View.VISIBLE else View.GONE
@@ -385,6 +385,11 @@ class TrackpadOverlayService: AccessibilityService() {
         ).apply {
             gravity = Gravity.TOP or (if (side == "left") Gravity.START else Gravity.END)
             y = stripYPx
+        }
+
+        view.addOnLayoutChangeListener { v, left, top, right, bottom, _, _, _, _ ->
+            val rect = Rect(left, top, right, bottom)
+            v.setSystemGestureExclusionRects(listOf(rect))
         }
 
         windowManager.addView(view, params)

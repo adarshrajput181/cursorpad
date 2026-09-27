@@ -3,6 +3,7 @@ package com.example.cursorpad.ui.screens
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
@@ -37,9 +38,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
@@ -61,6 +65,7 @@ fun ActivationStripEditor(
     onBackPressed: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val density = LocalResources.current.displayMetrics.density
     val scope = rememberCoroutineScope()
     val dataStore = context.dataStore
     val preferences by dataStore.data.collectAsState(initial = preferencesOf())
@@ -120,6 +125,7 @@ fun ActivationStripEditor(
             )
         }
     ) { innerPadding ->
+        val dashedLineColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
@@ -245,6 +251,34 @@ fun ActivationStripEditor(
                         .background(Color.White)
                 )
             }
+
+            val bottomY = ((stripY + stripHeight).value) * density
+            val gestureNavMaxHeight = 200 * density
+            val y = bottomY - gestureNavMaxHeight
+
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawLine(
+                    color = dashedLineColor,
+                    start = Offset(0f, y),
+                    end = Offset(size.width, y),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                )
+            }
+
+            Text(
+                "Gesture navigation may intercept touches above this line",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                textAlign = if (side == "left") TextAlign.End else TextAlign.Start,
+                modifier = Modifier
+                    .align(if (side == "left") Alignment.TopStart else Alignment.TopEnd)
+                    .offset(y = stripY + stripHeight - 200.dp)
+                    .padding(
+                        start = if (side == "left") 45.dp else 5.dp,
+                        end = if (side == "right") 45.dp else 5.dp
+                    )
+            )
         }
     }
 }
