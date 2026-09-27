@@ -1,5 +1,6 @@
 package com.example.cursorpad.ui.screens
 
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,6 +43,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesOf
@@ -58,6 +60,7 @@ import com.example.cursorpad.data.TOUCHPAD_WIDTH_KEY
 import com.example.cursorpad.data.TOUCHPAD_X_KEY
 import com.example.cursorpad.data.TOUCHPAD_Y_KEY
 import com.example.cursorpad.data.dataStore
+import com.example.cursorpad.ui.theme.CursorPadTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -171,7 +174,7 @@ fun TouchpadPositionEditor(
                     .background(color = Color(0xAA333333), shape = RoundedCornerShape(20.dp))
                     .border(
                         width = 2.dp,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.primary.copy(0.8f),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
                     )
                     .pointerInput(Unit) {
@@ -296,5 +299,14 @@ fun TouchpadPositionEditor(
                 )
             }
         }
+    }
+}
+
+@Composable
+@Preview(name = "Light Mode")
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun PreviewTouchpadEditor() {
+    CursorPadTheme() {
+        TouchpadPositionEditor()
     }
 }

@@ -54,12 +54,12 @@ import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_HEIGHT
 import com.example.cursorpad.data.ACTIVATION_STRIP_RIGHT_TOP
 import com.example.cursorpad.data.ACTIVATION_STRIP_WIDTH
 import com.example.cursorpad.data.dataStore
+import com.example.cursorpad.ui.theme.CursorPadTheme
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun ActivationStripEditor(
     side: String = "left",
     onBackPressed: () -> Unit = {}
@@ -204,7 +204,7 @@ fun ActivationStripEditor(
                 modifier = Modifier
                     .offset(x = stripX, y = stripY)
                     .size(width = stripWidth, height = stripHeight)
-                    .background(color = MaterialTheme.colorScheme.secondary)
+                    .background(color = MaterialTheme.colorScheme.secondaryContainer)
                     .clip(RoundedCornerShape(0.dp))
             )
 
@@ -213,7 +213,7 @@ fun ActivationStripEditor(
                 modifier = Modifier
                     .offset(y = stripY - 1.dp)
                     .size(width = maxWidth, height = 2.dp)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
             )
 
             Box(
@@ -226,7 +226,7 @@ fun ActivationStripEditor(
                         .align(Alignment.BottomCenter)
                         .size(width = 60.dp, height = 6.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             }
 
@@ -235,7 +235,7 @@ fun ActivationStripEditor(
                 modifier = Modifier
                     .offset(y = stripY + stripHeight)
                     .size(width = maxWidth, height = 2.dp)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.outline)
             )
 
             Box(
@@ -248,7 +248,7 @@ fun ActivationStripEditor(
                         .align(Alignment.TopCenter)
                         .size(width = 60.dp, height = 6.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             }
 
@@ -280,5 +280,14 @@ fun ActivationStripEditor(
                     )
             )
         }
+    }
+}
+
+@Preview(name = "Light Mode")
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun PreviewStripEditor() {
+    CursorPadTheme {
+        ActivationStripEditor()
     }
 }
